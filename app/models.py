@@ -4,8 +4,6 @@ from datetime import datetime
 class University(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64),index=True, unique=True)
-    address = db.Column(db.String(120))
-    state = db.Column(db.String(32),index=True)
     rank = db.relationship('Rank', backref='university', lazy='dynamic')
     enrollments = db.relationship('Enrollments', backref='university', lazy='dynamic')
     research_income = db.relationship('Research_income', backref='university', lazy='dynamic')
@@ -20,7 +18,8 @@ class University(db.Model):
 class Rank(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
-    rank = db.Column(db.Integer,index=True,unique=True)
+    word_rank = db.Column(db.Integer, index=True)
+    national_rank = db.Column(db.Integer,index=True)
     quality_of_education = db.Column(db.Integer)
     alumni_employment = db.Column(db.Integer)
     quality_of_faculty = db.Column(db.Integer)
@@ -57,6 +56,7 @@ class Research_income(db.Model):
     other_public_sector_research_funding = db.Column(db.Text())
     industry_and_other_funding = db.Column(db.Text())
     cooperative_research_center_funding = db.Column(db.Text())
+    grand_total = db.Column(db.Integer())
     year = db.Column(db.Integer())
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 

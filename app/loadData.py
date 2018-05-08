@@ -1,20 +1,31 @@
-# from app.models import University,Rank,Enrollments,Research_income,HDR_completions
-# from app import db
+from app.models import University,Rank,Enrollments,Research_income,HDR_completions
+from app import db
 import pandas as pd
 import re
+import json
+
+def process_university_name(name):
+    name = re.sub(r'^(The|the)','',name)
+    name = name.strip()
+    name = re.sub(r'\n',' ',name)
+    name = re.sub(r'[ ]+',' ',name)
+    if 'RMIT' in name:
+        name = 'Royal Melbourne Institute of Technology'
+    if 'Federation' in name:
+        name = 'Federation University Australia'
+    return name
 
 def load_cwur_data(file_path):
-    df = pd.read_csv(file_path,index_col=1)
+    df = pd.read_csv(file_path,encoding = "ISO-8859-1")
     audf = df.loc[df['country'] == 'Australia']
     audf = audf.loc[:, audf.columns != 'country']
-    dicted_data = audf.to_dict('index')
     cwur_data = []
-    for key,value in dicted_data.items():
-        name = re.sub(r'\(Australia\)','',key)
+    for i in audf.index:
+        dicted = json.loads(audf.loc[i].to_json())
+        name = re.sub(r'\(Australia\)', '', dicted['institution'])
         name = name.strip()
-        print(name)
-        value['institution'] = name
-        cwur_data.append(value)
+        dicted['institution'] = name
+        cwur_data.append(dicted)
     return cwur_data
 
 
@@ -28,18 +39,20 @@ def load_research_data(file_path):
     for sheet,year in [(1,2016),(2,2015)]:
         df = pd.read_excel(file_path, sheet, skiprows=6,skip_footer=2, index_col=0)
         df = df.rename(columns=lambda x: x.strip())
+        df = df.rename(columns=lambda x: re.sub(r'\n', ' ', x))
         df = df.rename(columns=lambda x: re.sub(r'[ ]+', ' ', x))
         avaliable_institution = df.index.tolist()
+        formated_institution = [process_university_name(i) for i in avaliable_institution]
         for institution in avaliable_institution:
             temp_inst_data = {}
             df_inst = df.loc[institution]
             for i,j,header_name in sub_header:
-                temp_inst_data[header_name] = df_inst.iloc[i:j].to_dict()
-            temp_inst_data['Grand Total'] = df_inst.iloc[21]
-            temp_inst_data['year'] = year
+                temp_inst_data[header_name] = df_inst.iloc[i:j].to_json()
+            temp_inst_data['Grand Total'] = int(df_inst.iloc[21])
+            temp_inst_data['year'] = int(year)
             temp_inst_data['institution'] = institution
             research_data.append(temp_inst_data)       
-    return avaliable_institution, research_data
+    return formated_institution, research_data
 
 
 def load_HDR_data(file_path):
@@ -79,26 +92,76 @@ def load_enrollments_data(file_path):
             enrollments_data.append(temp)
     return enrollments_data
 
-            
-            
-
-
-
-
-# def insert_data(avaliable_institution,reserch_data,HDR_data,cwur_data,enrollments_data):
-    
-if __name__ == '__main__':
-    # avaliable_institution, research_data = load_research_data(
-    #     '/Users/lixingyu/Documents/assignment/comp9321/assignment3/data/2015_2016_research_income_and_hdr_completions_data.xlsx')
-    # print(avaliable_institution)
-    # print(research_data)
-    # HDR_data = load_HDR_data(
-    #     '/Users/lixingyu/Documents/assignment/comp9321/assignment3/data/2015_2016_research_income_and_hdr_completions_data.xlsx')
-    # print(HDR_data)
-    # cwur_data = load_cwur_data(
-    #     '/Users/lixingyu/Documents/assignment/comp9321/assignment3/data/cwurData.csv')
-    # print(cwur_data)
-    enrollments_data = load_enrollments_data(
-        '/Users/lixingyu/Documents/assignment/comp9321/assignment3/data/undergraduate_applications_offers_and_acceptances_2017_appendices_1.xlsm')
-    print(enrollments_data)
+def insert_data(avaliable_institution,reserch_data,HDR_data,cwur_data,enrollments_data):
+    for institution in avaliable_institution:
+        u = University(name=institution)
+        db.session.add(u)
+    for item in reserch_data:
+        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        if u:
+            ri = Research_income(
+                australian_competitive_grants=item['Australian Competitve Grants'],
+                other_public_sector_research_funding=item['Other Public Sector Research Funding'],
+                industry_and_other_funding=item['Industry and Other Funding for Research'],
+                cooperative_research_center_funding=item['Cooperative Research Center Funding'],
+                grand_total=item['Grand Total'],
+                year=item['year']
+                )
+            u.research_income.append(ri)
+        else:
+            print(f"missing university:{item['institution']}")
+    for item in HDR_data:
+        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        if u:
+            hdr = HDR_completions(
+                research_master_hc_non_indigenous=item['Research Masters High Cost non-Indigenous'],
+                research_master_lc_non_indigenous=item['Research Masters Low Cost non-Indigenous'],
+                research_doctorate_hc_non_indigenous=item['Research Doctorate High Cost non-Indigenous'],
+                research_doctorate_lc_non_indigenous=item['Research Doctorate Low Cost non-Indigenous'],
+                total_non_indigenous_unweighted=item['Total non-Indigenous (Unweighted)'],
+                research_master_hc_indigenous=item['Research Masters High Cost Indigenous'],
+                research_master_lc_indigenous=item['Research Masters Low Cost Indigenous'],
+                research_doctorate_hc_indigenous=item['Research Doctorate High Cost Indigenous'],
+                research_doctorate_lc_indigenous=item['Research Doctorate Low Cost Indigenous'],
+                total_indigenou_unweighted=item['Total Indigenous (Unweighted)'],
+                grand_total_non_indigenous_and_indigenous_unweighted=item['Grand Total Non-Indigenous and Indigenous (Unweighted)'],
+                grand_total_non_indigenous_and_indigenous_weighted=item['Grand Total Non-Indigenous and Indigenous (Weighted)'],
+                year=item['year']
+                )
+            u.HDR_completions.append(hdr)
+        else:
+            print(f"missing university:{item['institution']}")
+    for item in cwur_data:
+        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        if u:
+            rank = Rank(
+                word_rank=item['world_rank'],
+                national_rank=item['national_rank'],
+                quality_of_education=item['quality_of_education'],
+                alumni_employment=item['alumni_employment'],
+                quality_of_faculty=item['quality_of_faculty'],
+                publications=item['publications'],
+                influence=item['influence'],
+                citations=item['citations'],
+                broad_impact=item['broad_impact'],
+                patents=item['patents'],
+                score=item['score'],
+                year=item['year']
+                )
+            u.rank.append(rank)
+        else:
+            print(f"missing university:{item['institution']}")
+    for item in enrollments_data:
+        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        if u:
+            enrol = Enrollments(
+                applications=item['Applications'],
+                offers=item['Offers'],
+                offer_rates=item['Offer rates'],
+                year=item['year']
+                )
+            u.enrollments.append(enrol)
+        else:
+            print(f"missing university:{item['institution']}")
+    db.session.commit()
     pass

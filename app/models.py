@@ -7,7 +7,7 @@ class University(db.Model):
     rank = db.relationship('Rank', backref='university', lazy='dynamic')
     enrollments = db.relationship('Enrollments', backref='university', lazy='dynamic')
     research_income = db.relationship('Research_income', backref='university', lazy='dynamic')
-    research_income = db.relationship('HDR_completions', backref='university', lazy='dynamic')
+    HDR_completions = db.relationship('HDR_completions', backref='university', lazy='dynamic')
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
 
@@ -28,7 +28,7 @@ class Rank(db.Model):
     citations = db.Column(db.Integer)
     broad_impact = db.Column(db.Integer)
     patents = db.Column(db.Integer)
-    score = db.Column(db.Integer)
+    score = db.Column(db.Float)
     year = db.Column(db.Integer)
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
@@ -41,7 +41,7 @@ class Enrollments(db.Model):
     uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
     applications = db.Column(db.Integer)
     offers = db.Column(db.Integer)
-    offer_rates = db.Column(db.Integer)
+    offer_rates = db.Column(db.Float)
     year = db.Column(db.Integer)
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
@@ -70,15 +70,15 @@ class HDR_completions(db.Model):
     research_master_lc_non_indigenous = db.Column(db.String(32))
     research_doctorate_hc_non_indigenous = db.Column(db.String(32))
     research_doctorate_lc_non_indigenous = db.Column(db.String(32))
-    research_doctorate_lc_non_indigenous = db.Column(db.String(32))
     total_non_indigenous_unweighted = db.Column(db.String(32))
     research_master_hc_indigenous = db.Column(db.String(32))
     research_master_lc_indigenous = db.Column(db.String(32))
     research_doctorate_hc_indigenous = db.Column(db.String(32))
     research_doctorate_lc_indigenous = db.Column(db.String(32))
     total_indigenou_unweighted = db.Column(db.String(32))
-    grand_total_non_indigenous_and_indigenous_unweighted = db.Column(db.Integer())
-    grand_total_non_indigenous_and_indigenous_weighted = db.Column(db.Integer())
+    grand_total_non_indigenous_and_indigenous_unweighted = db.Column(db.String(32))
+    grand_total_non_indigenous_and_indigenous_weighted = db.Column(db.String(32))
+    year = db.Column(db.Integer())
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):

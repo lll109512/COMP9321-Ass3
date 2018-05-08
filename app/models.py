@@ -1,15 +1,15 @@
 from app import db
 from datetime import datetime
 
+
 class University(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(64),index=True, unique=True)
+    name = db.Column(db.String(64), index=True, unique=True)
     rank = db.relationship('Rank', backref='university', lazy='dynamic')
     enrollments = db.relationship('Enrollments', backref='university', lazy='dynamic')
     research_income = db.relationship('Research_income', backref='university', lazy='dynamic')
     HDR_completions = db.relationship('HDR_completions', backref='university', lazy='dynamic')
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
-
 
     def __repr__(self):
         return '<name {}>'.format(self.name)
@@ -19,7 +19,7 @@ class Rank(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
     word_rank = db.Column(db.Integer, index=True)
-    national_rank = db.Column(db.Integer,index=True)
+    national_rank = db.Column(db.Integer, index=True)
     quality_of_education = db.Column(db.Integer)
     alumni_employment = db.Column(db.Integer)
     quality_of_faculty = db.Column(db.Integer)
@@ -62,6 +62,7 @@ class Research_income(db.Model):
 
     def __repr__(self):
         return '<Research income for {}>'.format(self.uni_id)
+
 
 class HDR_completions(db.Model):
     id = db.Column(db.Integer, primary_key=True)

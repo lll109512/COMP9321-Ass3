@@ -9,8 +9,3 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from app import routes, models, loadData
-
-
-@app.route('/')
-def index():
-    return render_template('index.html')

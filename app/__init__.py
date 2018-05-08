@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -9,3 +9,8 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 from app import routes, models, loadData
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')

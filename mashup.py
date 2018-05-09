@@ -6,4 +6,4 @@ from app.models import University, Rank
 def make_shell_context():
     return {'db': db, 'University': University, 'Rank': Rank}
 
-# app.run(debug=True)
+app.run(debug=True)

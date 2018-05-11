@@ -37,4 +37,4 @@ Xingyu Li: Source data fetching & analysing, and related API
 
 Jing Qian: Data publication API
 
-Daoran Huang: Front end web
+Daoran Huang: UI design & Front end

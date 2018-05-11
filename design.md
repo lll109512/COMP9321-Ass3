@@ -32,6 +32,9 @@ After the previous module finished analysing and storing all necessary data, all
 Publication module could provide all data via API, but that is hard to read and use for non-professional users, or even overwhelming experienced users.  Web app could provide a clear UI, which is easy to use for everyone.  It could also provide some features like comparison and so on.
 
 ### Group Members
+
 Xingyu Li: Source data fetching & analysing, and related API
+
 Jing Qian: Data publication API
+
 Daoran Huang: Front end web

@@ -2,23 +2,23 @@ from app import db
 from datetime import datetime
 
 
-class University(db.Model):
+class Universities(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
-    rank = db.relationship('Rank', backref='university', lazy='dynamic')
-    enrollments = db.relationship('Enrollments', backref='university', lazy='dynamic')
-    research_income = db.relationship('Research_income', backref='university', lazy='dynamic')
-    HDR_completions = db.relationship('HDR_completions', backref='university', lazy='dynamic')
+    rank = db.relationship('Ranks', backref='universities', lazy='dynamic')
+    enrollment = db.relationship('Enrollments', backref='universities', lazy='dynamic')
+    research_income = db.relationship('Research_incomes', backref='universities', lazy='dynamic')
+    HDR_completion = db.relationship('HDR_completions', backref='universities', lazy='dynamic')
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
         return '<name {}>'.format(self.name)
 
 
-class Rank(db.Model):
+class Ranks(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
-    word_rank = db.Column(db.Integer, index=True)
+    uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
+    world_rank = db.Column(db.Integer, index=True)
     national_rank = db.Column(db.Integer, index=True)
     quality_of_education = db.Column(db.Integer)
     alumni_employment = db.Column(db.Integer)
@@ -33,12 +33,12 @@ class Rank(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<rank for {}>'.format(self.uni_id)
+        return '<ranks for {}>'.format(self.uni_id)
 
 
 class Enrollments(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
+    uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
     applications = db.Column(db.Integer)
     offers = db.Column(db.Integer)
     offer_rates = db.Column(db.Float)
@@ -49,9 +49,9 @@ class Enrollments(db.Model):
         return '<Enrollments for {}>'.format(self.uni_id)
 
 
-class Research_income(db.Model):
+class Research_incomes(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
+    uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
     australian_competitive_grants = db.Column(db.Text())
     other_public_sector_research_funding = db.Column(db.Text())
     industry_and_other_funding = db.Column(db.Text())
@@ -61,12 +61,12 @@ class Research_income(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<Research income for {}>'.format(self.uni_id)
+        return '<Research incomes for {}>'.format(self.uni_id)
 
 
 class HDR_completions(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    uni_id = db.Column(db.Integer, db.ForeignKey('university.id'))
+    uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
     research_master_hc_non_indigenous = db.Column(db.String(32))
     research_master_lc_non_indigenous = db.Column(db.String(32))
     research_doctorate_hc_non_indigenous = db.Column(db.String(32))

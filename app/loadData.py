@@ -1,4 +1,4 @@
-from app.models import University, Rank, Enrollments, Research_income, HDR_completions
+from app.models import Universities, Ranks, Enrollments, Research_incomes, HDR_completions
 from app import db
 import pandas as pd
 import re
@@ -96,12 +96,12 @@ def load_enrollments_data(file_path):
 
 def insert_data(available_institution, research_data, HDR_data, cwur_data, enrollments_data):
     for institution in available_institution:
-        u = University(name=institution)
+        u = Universities(name=institution)
         db.session.add(u)
     for item in research_data:
-        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        u = Universities.query.filter(Universities.name.contains(process_university_name(item['institution']))).first()
         if u:
-            ri = Research_income(
+            ri = Research_incomes(
                 australian_competitive_grants=item['Australian Competitve Grants'],
                 other_public_sector_research_funding=item['Other Public Sector Research Funding'],
                 industry_and_other_funding=item['Industry and Other Funding for Research'],
@@ -113,7 +113,7 @@ def insert_data(available_institution, research_data, HDR_data, cwur_data, enrol
         else:
             print(f"missing university:{item['institution']}")
     for item in HDR_data:
-        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        u = Universities.query.filter(Universities.name.contains(process_university_name(item['institution']))).first()
         if u:
             hdr = HDR_completions(
                 research_master_hc_non_indigenous=item['Research Masters High Cost non-Indigenous'],
@@ -132,14 +132,14 @@ def insert_data(available_institution, research_data, HDR_data, cwur_data, enrol
                     'Grand Total Non-Indigenous and Indigenous (Weighted)'],
                 year=item['year']
             )
-            u.HDR_completions.append(hdr)
+            u.HDR_completion.append(hdr)
         else:
             print(f"missing university:{item['institution']}")
     for item in cwur_data:
-        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        u = Universities.query.filter(Universities.name.contains(process_university_name(item['institution']))).first()
         if u:
-            rank = Rank(
-                word_rank=item['world_rank'],
+            rank = Ranks(
+                world_rank=item['world_rank'],
                 national_rank=item['national_rank'],
                 quality_of_education=item['quality_of_education'],
                 alumni_employment=item['alumni_employment'],
@@ -156,7 +156,7 @@ def insert_data(available_institution, research_data, HDR_data, cwur_data, enrol
         else:
             print(f"missing university:{item['institution']}")
     for item in enrollments_data:
-        u = University.query.filter(University.name.contains(process_university_name(item['institution']))).first()
+        u = Universities.query.filter(Universities.name.contains(process_university_name(item['institution']))).first()
         if u:
             enrol = Enrollments(
                 applications=item['Applications'],
@@ -164,7 +164,7 @@ def insert_data(available_institution, research_data, HDR_data, cwur_data, enrol
                 offer_rates=item['Offer rates'],
                 year=item['year']
             )
-            u.enrollments.append(enrol)
+            u.enrollment.append(enrol)
         else:
             print(f"missing university:{item['institution']}")
     db.session.commit()

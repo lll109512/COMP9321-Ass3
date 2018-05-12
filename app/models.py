@@ -12,7 +12,7 @@ class Universities(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<name {}>'.format(self.name)
+        return f'<University#{self.id} {self.name}>'
 
 
 class Ranks(db.Model):
@@ -33,7 +33,7 @@ class Ranks(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<ranks for {}>'.format(self.uni_id)
+        return f'<Rank for {self.uni_id}>'
 
 
 class Enrollments(db.Model):
@@ -46,7 +46,7 @@ class Enrollments(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<Enrollments for {}>'.format(self.uni_id)
+        return f'<Enrollment for {self.uni_id}>'
 
 
 class Research_incomes(db.Model):
@@ -61,7 +61,7 @@ class Research_incomes(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<Research incomes for {}>'.format(self.uni_id)
+        return f'<Research income for {self.uni_id}>'
 
 
 class HDR_completions(db.Model):
@@ -83,4 +83,4 @@ class HDR_completions(db.Model):
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
-        return '<HDR Completions for {}>'.format(self.uni_id)
+        return f'<HDR Completion for {self.uni_id}>'

@@ -2,7 +2,6 @@ from app import app
 from flask import render_template, jsonify
 from flask_restful import reqparse
 from app.models import *
-import math
 
 
 @app.route('/')
@@ -26,7 +25,7 @@ def university():
     results = []
     for row in query_result:
         results.append(row.name)
-    return jsonify(pages=math.ceil(result_quantity / args['rpp']), result=results)
+    return jsonify(quantity=result_quantity, result=results)
 
 
 @app.route('/rank')

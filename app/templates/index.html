@@ -39,11 +39,11 @@
                     $("#uni-status").html('Searching...');
                     let url = "{{ url_for('university') }}" + "?uni=" + $("#uni-uni").val() +
                         "&p=" + $("#uni-p").val() + "&rpp=" + $("#uni-rpp").val();
-                    console.log(url);
                     $.get(url, function (data) {
                         let tb = $("#uni-tbody");
                         tb.html('');
-                        $("#uni-status").html('Page ' + $("#uni-p").val() + '/' + data.pages);
+                        let newStatus = 'Page ' + $("#uni-p").val() + '/' + Math.ceil(data.quantity / $("#uni-rpp").val()) + ' of ' + data.quantity + ' results'
+                        $("#uni-status").html(newStatus);
                         let resultLength = data.result.length;
                         for (let i = 0; i < resultLength; i++) {
                             tb.append("<tr><td>" + (i + 1) + "</td><td>" + data.result[i] + "</td></tr>")
@@ -111,7 +111,7 @@
             </div>
             <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
         </form>
-        <div id="uni-status" class="mt-4"></div>
+        <div id="uni-status" class="mt-4 mb-2"></div>
         <table id="uni-table" class="table table-striped" style="display: none;">
             <thead>
             <tr>

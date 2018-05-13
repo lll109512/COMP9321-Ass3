@@ -2,6 +2,7 @@ from app import app
 from flask import render_template, jsonify
 from flask_restful import reqparse
 from app.models import *
+import math
 
 
 @app.route('/')
@@ -20,11 +21,12 @@ def university():
     offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
+    result_quantity = query.count()
     query_result = query.offset(offset).limit(args['rpp'])
     results = []
     for row in query_result:
         results.append(row.name)
-    return jsonify(result=results)
+    return jsonify(pages=math.ceil(result_quantity / args['rpp']), result=results)
 
 
 @app.route('/rank')

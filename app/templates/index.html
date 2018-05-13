@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
     <script>
-        function select(target) {
+        function section(target) {
             let targets = ['university', 'rank', 'enrollment', 'completion', 'income', 'mash-up'];
             targets = targets.filter(function (item) {
                 return item !== target
@@ -22,15 +22,31 @@
             $("#" + target).show();
         }
 
+        function pageModify(section, action) {
+            $("#" + section + "-p").val(function (i, old) {
+                if (action === "+") {
+                    return ++ old;
+                }
+                else if (action === "-") {
+                    return -- old;
+                }
+            });
+        }
+
         $(document).ready(function () {
             $("#uni-search").click(
                 function () {
                     $("#uni-status").html('Searching...');
-                    $.get("{{ url_for('university') }}", function (data) {
-                        $("#uni-status").html('Search finished');
+                    let url = "{{ url_for('university') }}" + "?uni=" + $("#uni-uni").val() +
+                        "&p=" + $("#uni-p").val() + "&rpp=" + $("#uni-rpp").val();
+                    console.log(url);
+                    $.get(url, function (data) {
+                        let tb = $("#uni-tbody");
+                        tb.html('');
+                        $("#uni-status").html('Page ' + $("#uni-p").val() + '/' + data.pages);
                         let resultLength = data.result.length;
-                        for (let i = 0; i < resultLength; i ++) {
-                            $("#uni-tbody").append("<tr><td>" + data.result[i] + "</td></tr>")
+                        for (let i = 0; i < resultLength; i++) {
+                            tb.append("<tr><td>" + (i + 1) + "</td><td>" + data.result[i] + "</td></tr>")
                         }
                         $("#uni-table").show();
                     });
@@ -46,22 +62,22 @@
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav mr-auto">
             <li id="university-nav" class="nav-item active">
-                <a class="nav-link" onclick="select('university')">University</a>
+                <a class="nav-link" onclick="section('university')">University</a>
             </li>
             <li id="rank-nav" class="nav-item">
-                <a class="nav-link" onclick="select('rank')">Rank</a>
+                <a class="nav-link" onclick="section('rank')">Rank</a>
             </li>
             <li id="enrollment-nav" class="nav-item">
-                <a class="nav-link" onclick="select('enrollment')">Enrollment</a>
+                <a class="nav-link" onclick="section('enrollment')">Enrollment</a>
             </li>
             <li id="completion-nav" class="nav-item">
-                <a class="nav-link" onclick="select('completion')">Research Income</a>
+                <a class="nav-link" onclick="section('completion')">Research Income</a>
             </li>
             <li id="income-nav" class="nav-item">
-                <a class="nav-link" onclick="select('income')">HDR Completion</a>
+                <a class="nav-link" onclick="section('income')">HDR Completion</a>
             </li>
             <li id="mash-up-nav" class="nav-item">
-                <a class="nav-link" onclick="select('mash-up')">Mash Up</a>
+                <a class="nav-link" onclick="section('mash-up')">Mash Up</a>
             </li>
         </ul>
     </div>
@@ -71,10 +87,26 @@
     <div id="university">
         <form>
             <div class="row">
-                <div class="col">
-                    <label>University</label>
-                    <input type="text" class="form-control" id="uni"
+                <div class="col-6">
+                    <label for="uni-uni">University</label>
+                    <input type="text" class="form-control" id="uni-uni"
                            placeholder="Please type any part of a university name">
+                </div>
+                <div class="col-2">
+                    <label for="uni-p">Page</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button class="btn btn-outline-secondary" type="button" onclick="pageModify('uni', '-')">-</button>
+                        </div>
+                        <input type="text" class="form-control" id="uni-p" value="1">
+                        <div class="input-group-append">
+                            <button class="btn btn-outline-secondary" type="button" onclick="pageModify('uni', '+')">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <label for="uni-rpp">Results per page</label>
+                    <input type="text" class="form-control" id="uni-rpp" value="10">
                 </div>
             </div>
             <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
@@ -83,6 +115,7 @@
         <table id="uni-table" class="table table-striped" style="display: none;">
             <thead>
             <tr>
+                <th>#</th>
                 <th>University</th>
             </tr>
             </thead>

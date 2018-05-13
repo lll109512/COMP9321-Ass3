@@ -2,11 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Index</title>
+    <title>CSDAU</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script>
+        function select(target) {
+            let targets = ['university', 'rank', 'enrollment', 'completion', 'income', 'mash-up'];
+            targets = targets.filter(function (item) {
+                return item !== target
+            });
+            let length = targets.length;
+            for (let i = 0; i < length; i++) {
+                $("#" + targets[i] + "-nav").removeClass('active');
+                $("#" + targets[i]).hide();
+            }
+            $("#" + target + "-nav").addClass('active');
+            $("#" + target).show();
+        }
+
+        $(document).ready(function () {
+            $("#uni-search").click(
+                function () {
+                    $("#uni-status").html('Searching...');
+                    $.get("{{ url_for('university') }}", function (data) {
+                        $("#uni-status").html('Search finished');
+                        let resultLength = data.result.length;
+                        for (let i = 0; i < resultLength; i ++) {
+                            $("#uni-tbody").append("<tr><td>" + data.result[i] + "</td></tr>")
+                        }
+                        $("#uni-table").show();
+                    });
+                }
+            );
+        });
+    </script>
 </head>
 <body>
-    app index
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand">CSDAU</a>
+
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav mr-auto">
+            <li id="university-nav" class="nav-item active">
+                <a class="nav-link" onclick="select('university')">University</a>
+            </li>
+            <li id="rank-nav" class="nav-item">
+                <a class="nav-link" onclick="select('rank')">Rank</a>
+            </li>
+            <li id="enrollment-nav" class="nav-item">
+                <a class="nav-link" onclick="select('enrollment')">Enrollment</a>
+            </li>
+            <li id="completion-nav" class="nav-item">
+                <a class="nav-link" onclick="select('completion')">Research Income</a>
+            </li>
+            <li id="income-nav" class="nav-item">
+                <a class="nav-link" onclick="select('income')">HDR Completion</a>
+            </li>
+            <li id="mash-up-nav" class="nav-item">
+                <a class="nav-link" onclick="select('mash-up')">Mash Up</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<div class="container mt-4">
+    <!-- university -->
+    <div id="university">
+        <form>
+            <div class="row">
+                <div class="col">
+                    <label>University</label>
+                    <input type="text" class="form-control" id="uni"
+                           placeholder="Please type any part of a university name">
+                </div>
+            </div>
+            <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
+        </form>
+        <div id="uni-status" class="mt-4"></div>
+        <table id="uni-table" class="table table-striped" style="display: none;">
+            <thead>
+            <tr>
+                <th>University</th>
+            </tr>
+            </thead>
+            <tbody id="uni-tbody"></tbody>
+        </table>
+    </div>
+
+    <!-- rank -->
+    <div id="rank" style="display: none;">
+        rank
+    </div>
+
+    <!-- rank -->
+    <div id="enrollment" style="display: none;">
+        Enrollment
+    </div>
+
+    <!-- rank -->
+    <div id="income" style="display: none;">
+        Research Income
+    </div>
+
+    <!-- rank -->
+    <div id="completion" style="display: none;">
+        HDR Completion
+    </div>
+
+    <!-- rank -->
+    <div id="mash-up" style="display: none;">
+        Mash Up
+    </div>
+</div>
 </body>
 </html>

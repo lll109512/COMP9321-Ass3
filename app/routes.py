@@ -24,13 +24,14 @@ def university():
     results = []
     for row in query_result:
         results.append(row.name)
-    return jsonify(success=True, result=results)
+    return jsonify(result=results)
 
 
 @app.route('/rank')
 def rank():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
+    parser.add_argument('year', False, type=int)
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
@@ -38,6 +39,8 @@ def rank():
     offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
+    if args['year']:
+        query = query.filter(Ranks.year == args['year'])
     query_result = query.offset(offset).limit(args['rpp'])
     results = []
     rank_neglect_fields = ['id', 'uni_id', 'create_date', '_sa_instance_state']
@@ -47,4 +50,4 @@ def rank():
             rank_copied.pop(field)
         rank_copied['university'] = university.name
         results.append(rank_copied)
-    return jsonify(success=True, result=results)
+    return jsonify(result=results)

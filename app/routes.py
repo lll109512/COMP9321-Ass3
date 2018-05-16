@@ -2,6 +2,7 @@ from app import app
 from flask import render_template, jsonify
 from flask_restful import reqparse
 from app.models import *
+import json
 
 
 @app.route('/')
@@ -55,10 +56,9 @@ def rank():
     query = table_query_filter_builder(query, Ranks, args, attribute_to_field)
     query_result = query.offset(offset).limit(args['rpp'])
     results = []
-    rank_neglect_fields = ['id', 'uni_id', 'create_date', '_sa_instance_state']
     for uni_rank, uni in query_result:
         rank_copied = vars(uni_rank).copy()
-        for field in rank_neglect_fields:
+        for field in neglect_fields:
             rank_copied.pop(field)
         rank_copied['university'] = uni.name
         results.append(rank_copied)
@@ -93,10 +93,9 @@ def enrollment():
     query = table_query_filter_builder(query, Enrollments, args, attribute_to_field)
     query_result = query.offset(offset).limit(args['rpp'])
     results = []
-    rank_neglect_fields = ['id', 'uni_id', 'create_date', '_sa_instance_state']
     for uni_enrollment, uni in query_result:
         enrollment_copied = vars(uni_enrollment).copy()
-        for field in rank_neglect_fields:
+        for field in neglect_fields:
             enrollment_copied.pop(field)
         enrollment_copied['university'] = uni.name
         results.append(enrollment_copied)
@@ -105,15 +104,95 @@ def enrollment():
 
 @app.route('/completion')
 def completions():
-    pass
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni', '')
+    parser.add_argument('totalUnweightedOp', 'gt')
+    parser.add_argument('totalUnweighted', None, type=int)
+    parser.add_argument('totalWeightedOp', 'gt')
+    parser.add_argument('totalWeighted', None, type=int)
+    parser.add_argument('yearOp', 'eq')
+    parser.add_argument('year', None, type=int)
+    parser.add_argument('p', 1, type=int)
+    parser.add_argument('rpp', 10, type=int)
+    args = parser.parse_args()
+    query = db.session.query(HDR_completions, Universities).filter(HDR_completions.uni_id == Universities.id)
+    offset = (args['p'] - 1) * args['rpp']
+    if args['uni'] != '':
+        query = query.filter(Universities.name.like(f"%{args['uni']}%"))
+    attribute_to_field = {
+        'totalUnweighted': 'grand_total_non_indigenous_and_indigenous_unweighted',
+        'totalWeighted': 'grand_total_non_indigenous_and_indigenous_weighted',
+        'year': 'year'
+    }
+    query = table_query_filter_builder(query, HDR_completions, args, attribute_to_field)
+    query_result = query.offset(offset).limit(args['rpp'])
+    results = []
+    for uni_completion, uni in query_result:
+        completion_copied = vars(uni_completion).copy()
+        for field in neglect_fields:
+            completion_copied.pop(field)
+        completion_copied['university'] = uni.name
+        results.append(completion_copied)
+    return jsonify(quantity=query.count(), result=results)
 
 
 @app.route('/income')
 def income():
-    pass
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni', '')
+    parser.add_argument('acgOp', 'gt')
+    parser.add_argument('acg', None, type=int)
+    parser.add_argument('opsrfOp', 'gt')
+    parser.add_argument('opsrf', None, type=int)
+    parser.add_argument('opsrfOp', 'gt')
+    parser.add_argument('opsrf', None, type=int)
+    parser.add_argument('iaofOp', 'gt')
+    parser.add_argument('iaof', None, type=int)
+    parser.add_argument('crcfOp', 'gt')
+    parser.add_argument('crcf', None, type=int)
+    parser.add_argument('totalOp', 'gt')
+    parser.add_argument('total', None, type=int)
+    parser.add_argument('p', 1, type=int)
+    parser.add_argument('rpp', 10, type=int)
+    args = parser.parse_args()
+    query = db.session.query(Research_incomes, Universities).filter(Research_incomes.uni_id == Universities.id)
+    offset = (args['p'] - 1) * args['rpp']
+    if args['uni'] != '':
+        query = query.filter(Universities.name.like(f"%{args['uni']}%"))
+    attribute_to_field = {
+        'acg': 'australian_competitive_grants',
+        'opsrf': 'other_public_sector_research_funding',
+        'iaof': 'industry_and_other_funding',
+        'crcf': 'cooperative_research_center_funding',
+        'total': 'grand_total',
+        'year': 'year'
+    }
+    query = table_query_filter_builder(query, HDR_completions, args, attribute_to_field)
+    query_result = query.offset(offset).limit(args['rpp'])
+    results = []
+    for uni_income, uni in query_result:
+        acg = json.dumps(uni_income.australian_competitive_grants)
+        opsrf = json.dumps(uni_income.other_public_sector_research_funding)
+        iaof = json.dumps(uni_income.industry_and_other_funding)
+        crcf = json.dumps(uni_income.cooperative_research_center_funding)
+        if (args['acg'] is None or args['acg'] and getattr(acg['Sub Total'], args['acgOp'])(args['acg'])) and \
+            (args['opsrf'] is None or args['opsrf'] and getattr(opsrf['Sub Total.1'], args['opsrfOp'])(args['opsrf'])) and \
+            (args['iaof'] is None or args['iaof'] and getattr(iaof['Sub Total.2'], args['iaofOp'])(args['iaof'])) and \
+            (args['crcf'] is None or args['crcf'] and getattr(crcf['Sub Total.3'], args['crcfOp'])(args['crcf'])):
+            row = {
+                'university': uni.name,
+                'year': uni_income.year,
+                'australian_competitive_grants': acg,
+                'other_public_sector_research_funding': opsrf,
+                'industry_and_other_funding': iaof,
+                'cooperative_research_center_funding': crcf,
+                'total': uni_income.total
+            }
+            results.append(row)
+    return jsonify(quantity=query.count(), result=results)
 
 
-@app.route('mashup')
+@app.route('/mashup')
 def mashup():
     pass
 

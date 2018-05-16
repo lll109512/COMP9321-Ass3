@@ -84,3 +84,6 @@ class HDR_completions(db.Model):
 
     def __repr__(self):
         return f'<HDR Completion for {self.uni_id}>'
+
+
+neglect_fields = ['id', 'uni_id', 'create_date', '_sa_instance_state']

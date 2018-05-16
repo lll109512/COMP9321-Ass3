@@ -4,12 +4,12 @@ from flask_restful import reqparse
 from app.models import *
 
 
-@app.route('/')
+@app.route('/',methods=['GET'])
 def index():
     return render_template('index.html')
 
 
-@app.route('/university')
+@app.route('/university',methods=['GET'])
 def university():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -27,7 +27,7 @@ def university():
     return jsonify(quantity=query.count(), result=results)
 
 
-@app.route('/rank')
+@app.route('/rank', methods=['GET'])
 def rank():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -65,7 +65,7 @@ def rank():
     return jsonify(quantity=query.count(), result=results)
 
 
-@app.route('/enrollment')
+@app.route('/enrollment', methods=['GET'])
 def enrollment():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -113,7 +113,7 @@ def income():
     pass
 
 
-@app.route('mashup')
+@app.route('/mashup')
 def mashup():
     pass
 

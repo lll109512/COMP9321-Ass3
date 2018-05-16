@@ -106,9 +106,9 @@ def enrollment():
 def completions():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('totalUnweightedOp', 'gt')
+    parser.add_argument('totalUnweightedOp', 'ge')
     parser.add_argument('totalUnweighted', None, type=int)
-    parser.add_argument('totalWeightedOp', 'gt')
+    parser.add_argument('totalWeightedOp', 'ge')
     parser.add_argument('totalWeighted', None, type=int)
     parser.add_argument('yearOp', 'eq')
     parser.add_argument('year', None, type=int)
@@ -140,45 +140,41 @@ def completions():
 def income():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('acgOp', 'gt')
+    parser.add_argument('acgOp', 'ge')
     parser.add_argument('acg', None, type=int)
-    parser.add_argument('opsrfOp', 'gt')
+    parser.add_argument('opsrfOp', 'ge')
     parser.add_argument('opsrf', None, type=int)
-    parser.add_argument('opsrfOp', 'gt')
-    parser.add_argument('opsrf', None, type=int)
-    parser.add_argument('iaofOp', 'gt')
+    parser.add_argument('iaofOp', 'ge')
     parser.add_argument('iaof', None, type=int)
-    parser.add_argument('crcfOp', 'gt')
+    parser.add_argument('crcfOp', 'ge')
     parser.add_argument('crcf', None, type=int)
-    parser.add_argument('totalOp', 'gt')
+    parser.add_argument('totalOp', 'ge')
     parser.add_argument('total', None, type=int)
+    parser.add_argument('yearOp', 'eq')
+    parser.add_argument('year', None, type=int)
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
     query = db.session.query(Research_incomes, Universities).filter(Research_incomes.uni_id == Universities.id)
-    offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
     attribute_to_field = {
-        'acg': 'australian_competitive_grants',
-        'opsrf': 'other_public_sector_research_funding',
-        'iaof': 'industry_and_other_funding',
-        'crcf': 'cooperative_research_center_funding',
         'total': 'grand_total',
         'year': 'year'
     }
-    query = table_query_filter_builder(query, HDR_completions, args, attribute_to_field)
-    query_result = query.offset(offset).limit(args['rpp'])
+    query = table_query_filter_builder(query, Research_incomes, args, attribute_to_field)
+    query_result = query.all()
     results = []
     for uni_income, uni in query_result:
-        acg = json.dumps(uni_income.australian_competitive_grants)
-        opsrf = json.dumps(uni_income.other_public_sector_research_funding)
-        iaof = json.dumps(uni_income.industry_and_other_funding)
-        crcf = json.dumps(uni_income.cooperative_research_center_funding)
-        if (args['acg'] is None or args['acg'] and getattr(acg['Sub Total'], args['acgOp'])(args['acg'])) and \
-            (args['opsrf'] is None or args['opsrf'] and getattr(opsrf['Sub Total.1'], args['opsrfOp'])(args['opsrf'])) and \
-            (args['iaof'] is None or args['iaof'] and getattr(iaof['Sub Total.2'], args['iaofOp'])(args['iaof'])) and \
-            (args['crcf'] is None or args['crcf'] and getattr(crcf['Sub Total.3'], args['crcfOp'])(args['crcf'])):
+        acg = json.loads(uni_income.australian_competitive_grants)
+        opsrf = json.loads(uni_income.other_public_sector_research_funding)
+        iaof = json.loads(uni_income.industry_and_other_funding)
+        crcf = json.loads(uni_income.cooperative_research_center_funding)
+
+        if (args['acg'] is None or (args['acg'] is not None and getattr(acg['Sub Total'], f'__{args["acgOp"]}__')(args['acg']))) and \
+            (args['opsrf'] is None or (args['opsrf'] is not None and getattr(opsrf['Sub Total.1'], f'__{args["opsrfOp"]}__')(args['opsrf']))) and \
+            (args['iaof'] is None or (args['iaof'] is not None and getattr(iaof['Sub Total.2'], f'__{args["iaofOp"]}__')(args['iaof']))) and \
+            (args['crcf'] is None or (args['crcf'] is not None and getattr(crcf['Sub Total.3'], f'__{args["crcfOp"]}__')(args['crcf']))):
             row = {
                 'university': uni.name,
                 'year': uni_income.year,
@@ -186,10 +182,10 @@ def income():
                 'other_public_sector_research_funding': opsrf,
                 'industry_and_other_funding': iaof,
                 'cooperative_research_center_funding': crcf,
-                'total': uni_income.total
+                'grand_total': uni_income.grand_total
             }
             results.append(row)
-    return jsonify(quantity=query.count(), result=results)
+    return jsonify(quantity=len(results), result=results)
 
 
 @app.route('/mashup')

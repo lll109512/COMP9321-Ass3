@@ -32,14 +32,12 @@ def university():
 def rank():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('worldRankOp', 'le')
-    parser.add_argument('worldRank', None, type=int)
-    parser.add_argument('nationalRankOp', 'le')
-    parser.add_argument('nationalRank', None, type=int)
-    parser.add_argument('scoreOp', 'ge')
-    parser.add_argument('score', None, type=float)
-    parser.add_argument('yearOp', 'eq')
-    parser.add_argument('year', None, type=int)
+    parser = argument_adder(parser, [
+        ('worldRank', 'le'),
+        ('nationalRank', 'le'),
+        ('score', float),
+        ('year', 'eq')
+    ])
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
@@ -69,14 +67,12 @@ def rank():
 def enrollment():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('applicationOp', 'ge')
-    parser.add_argument('application', None, type=int)
-    parser.add_argument('offerOp', 'ge')
-    parser.add_argument('offer', None, type=int)
-    parser.add_argument('offerRateOp', 'ge')
-    parser.add_argument('offerRate', None, type=float)
-    parser.add_argument('yearOp', 'eq')
-    parser.add_argument('year', None, type=int)
+    parser = argument_adder(parser, [
+        'application',
+        'offer',
+        ('offerRate', float),
+        ('year', 'eq')
+    ])
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
@@ -106,12 +102,11 @@ def enrollment():
 def completions():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('totalUnweightedOp', 'ge')
-    parser.add_argument('totalUnweighted', None, type=int)
-    parser.add_argument('totalWeightedOp', 'ge')
-    parser.add_argument('totalWeighted', None, type=int)
-    parser.add_argument('yearOp', 'eq')
-    parser.add_argument('year', None, type=int)
+    parser = argument_adder(parser, [
+        'totalUnweighted',
+        'totalWeighted',
+        ('year', 'eq')
+    ])
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
@@ -140,18 +135,14 @@ def completions():
 def income():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('acgOp', 'ge')
-    parser.add_argument('acg', None, type=int)
-    parser.add_argument('opsrfOp', 'ge')
-    parser.add_argument('opsrf', None, type=int)
-    parser.add_argument('iaofOp', 'ge')
-    parser.add_argument('iaof', None, type=int)
-    parser.add_argument('crcfOp', 'ge')
-    parser.add_argument('crcf', None, type=int)
-    parser.add_argument('totalOp', 'ge')
-    parser.add_argument('total', None, type=int)
-    parser.add_argument('yearOp', 'eq')
-    parser.add_argument('year', None, type=int)
+    parser = argument_adder(parser, [
+        'acg',
+        'opsrf',
+        'iaof',
+        'crcf',
+        'total',
+        ('year', 'eq')
+    ])
     parser.add_argument('p', 1, type=int)
     parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
@@ -172,9 +163,9 @@ def income():
         crcf = json.loads(uni_income.cooperative_research_center_funding)
 
         if (args['acg'] is None or (args['acg'] is not None and getattr(acg['Sub Total'], f'__{args["acgOp"]}__')(args['acg']))) and \
-            (args['opsrf'] is None or (args['opsrf'] is not None and getattr(opsrf['Sub Total.1'], f'__{args["opsrfOp"]}__')(args['opsrf']))) and \
-            (args['iaof'] is None or (args['iaof'] is not None and getattr(iaof['Sub Total.2'], f'__{args["iaofOp"]}__')(args['iaof']))) and \
-            (args['crcf'] is None or (args['crcf'] is not None and getattr(crcf['Sub Total.3'], f'__{args["crcfOp"]}__')(args['crcf']))):
+                (args['opsrf'] is None or (args['opsrf'] is not None and getattr(opsrf['Sub Total.1'], f'__{args["opsrfOp"]}__')(args['opsrf']))) and \
+                (args['iaof'] is None or (args['iaof'] is not None and getattr(iaof['Sub Total.2'], f'__{args["iaofOp"]}__')(args['iaof']))) and \
+                (args['crcf'] is None or (args['crcf'] is not None and getattr(crcf['Sub Total.3'], f'__{args["crcfOp"]}__')(args['crcf']))):
             row = {
                 'university': uni.name,
                 'year': uni_income.year,
@@ -199,3 +190,22 @@ def table_query_filter_builder(query, table, arguments, accepted_attributes_with
         if arguments[attribute]:
             query = query.filter(getattr(field, f'__{arguments[attribute + "Op"]}__')(arguments[attribute]))
     return query
+
+
+def argument_adder(parser, to_add):
+    for argument in to_add:
+        if type(argument) == str:
+            parser.add_argument(argument + 'Op', 'ge')
+            parser.add_argument(argument, None, type=int)
+        elif type(argument) == tuple:
+            field = argument[0]
+            operator = 'ge'
+            argument_type = int
+            for key in range(1, len(argument)):
+                if type(argument[key]) == str:
+                    operator = argument[key]
+                else:
+                    argument_type = argument[key]
+            parser.add_argument(field + 'Op', operator)
+            parser.add_argument(field, None, type=argument_type)
+    return parser

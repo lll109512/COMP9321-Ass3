@@ -3,150 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <title>CSDAU</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
-    <script>
-        function section(target) {
-            let targets = ['university', 'rank', 'enrollment', 'completion', 'income', 'mash-up'];
-            targets = targets.filter(function (item) {
-                return item !== target
-            });
-            let length = targets.length;
-            for (let i = 0; i < length; i++) {
-                $("#" + targets[i] + "-nav").removeClass('active');
-                $("#" + targets[i]).hide();
-            }
-            $("#" + target + "-nav").addClass('active');
-            $("#" + target).show();
-        }
-
-        function pageModify(section, action) {
-            $("#" + section + "-p").val(function (i, old) {
-                if (action === "+") {
-                    return ++ old;
-                }
-                else if (action === "-") {
-                    return -- old;
-                }
-            });
-        }
-
-        $(document).ready(function () {
-            $("#uni-search").click(
-                function () {
-                    $("#uni-status").html('Searching...');
-                    let url = "{{ url_for('university') }}" + "?uni=" + $("#uni-uni").val() +
-                        "&p=" + $("#uni-p").val() + "&rpp=" + $("#uni-rpp").val();
-                    $.get(url, function (data) {
-                        let tb = $("#uni-tbody");
-                        tb.html('');
-                        let newStatus = 'Page ' + $("#uni-p").val() + '/' + Math.ceil(data.quantity / $("#uni-rpp").val()) + ' of ' + data.quantity + ' results'
-                        $("#uni-status").html(newStatus);
-                        let resultLength = data.result.length;
-                        for (let i = 0; i < resultLength; i++) {
-                            tb.append("<tr><td>" + (i + 1) + "</td><td>" + data.result[i] + "</td></tr>")
-                        }
-                        $("#uni-table").show();
-                    });
-                }
-            );
-        });
-    </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css"
+          integrity="sha384-WskhaSGFgHYWDcbwN70/dfYBj47jz9qbsMId/iRN3ewGhXQFZCSftd1LZCfmhktB" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+            integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"
+            integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"
+            integrity="sha384-smHYKdLADwkXOn1EmN1qk/HfnUcbVRZyYmZ4qpPea6sjB/pTJ0euyQp0Mk8ck+5T"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 <body>
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand">CSDAU</a>
+<div id="app">
+    <!-- nav bar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand">CSDAU</a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav mr-auto">
+                <li id="university-nav" class="nav-item" v-bind:class="{ active: module == 'university' }">
+                    <span class="nav-link" v-on:click="section('university')">University</span>
+                </li>
+                <li id="rank-nav" class="nav-item" v-bind:class="{ active: module == 'rank' }">
+                    <span class="nav-link" v-on:click="section('rank')">Rank</span>
+                </li>
+                <li id="enrollment-nav" class="nav-item" v-bind:class="{ active: module == 'enrollment' }">
+                    <span class="nav-link" v-on:click="section('enrollment')">Enrollment</span>
+                </li>
+                <li id="income-nav" class="nav-item" v-bind:class="{ active: module == 'income' }">
+                    <span class="nav-link" v-on:click="section('income')">Research Income</span>
+                </li>
+                <li id="completion-nav" class="nav-item" v-bind:class="{ active: module == 'completion' }">
+                    <span class="nav-link" v-on:click="section('completion')">HDR Completion</span>
+                </li>
+                <li id="mash-up-nav" class="nav-item" v-bind:class="{ active: module == 'mash-up' }">
+                    <span class="nav-link" v-on:click="section('mash-up')">Mash Up</span>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-    <div class="collapse navbar-collapse">
-        <ul class="navbar-nav mr-auto">
-            <li id="university-nav" class="nav-item active">
-                <a class="nav-link" onclick="section('university')">University</a>
-            </li>
-            <li id="rank-nav" class="nav-item">
-                <a class="nav-link" onclick="section('rank')">Rank</a>
-            </li>
-            <li id="enrollment-nav" class="nav-item">
-                <a class="nav-link" onclick="section('enrollment')">Enrollment</a>
-            </li>
-            <li id="completion-nav" class="nav-item">
-                <a class="nav-link" onclick="section('completion')">Research Income</a>
-            </li>
-            <li id="income-nav" class="nav-item">
-                <a class="nav-link" onclick="section('income')">HDR Completion</a>
-            </li>
-            <li id="mash-up-nav" class="nav-item">
-                <a class="nav-link" onclick="section('mash-up')">Mash Up</a>
-            </li>
-        </ul>
-    </div>
-</nav>
-<div class="container mt-4">
-    <!-- university -->
-    <div id="university">
-        <form>
-            <div class="row">
-                <div class="col-6">
-                    <label for="uni-uni">University</label>
-                    <input type="text" class="form-control" id="uni-uni"
-                           placeholder="Please type any part of a university name">
-                </div>
-                <div class="col-2">
-                    <label for="uni-p">Page</label>
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <button class="btn btn-outline-secondary" type="button" onclick="pageModify('uni', '-')">-</button>
-                        </div>
-                        <input type="text" class="form-control" id="uni-p" value="1">
-                        <div class="input-group-append">
-                            <button class="btn btn-outline-secondary" type="button" onclick="pageModify('uni', '+')">+</button>
-                        </div>
+    <!-- content -->
+    <div class="container mt-4">
+        <!-- university -->
+        <div id="university" v-if="module == 'university'">
+            <form>
+                <div class="row">
+                    <div class="col">
+                        <label for="uni-uni">University</label>
+                        <input type="text" class="form-control" id="uni-uni" placeholder="University name">
                     </div>
                 </div>
-                <div class="col-4">
-                    <label for="uni-rpp">Results per page</label>
-                    <input type="text" class="form-control" id="uni-rpp" value="10">
-                </div>
-            </div>
-            <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
-        </form>
-        <div id="uni-status" class="mt-4 mb-2"></div>
-        <table id="uni-table" class="table table-striped" style="display: none;">
-            <thead>
-            <tr>
-                <th>#</th>
-                <th>University</th>
-            </tr>
-            </thead>
-            <tbody id="uni-tbody"></tbody>
-        </table>
-    </div>
+                <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
+            </form>
+            <div id="uni-status" class="mt-4 mb-2"></div>
+            <table id="uni-table" class="table table-striped" style="display: none;">
+                <thead>
+                <tr>
+                    <th>#</th>
+                    <th>University</th>
+                </tr>
+                </thead>
+                <tbody id="uni-tbody"></tbody>
+            </table>
+        </div>
 
-    <!-- rank -->
-    <div id="rank" style="display: none;">
-        rank
-    </div>
+        <!-- rank -->
+        <div id="rank" v-if="module == 'rank'">
+            [[ module ]]
+        </div>
 
-    <!-- rank -->
-    <div id="enrollment" style="display: none;">
-        Enrollment
-    </div>
+        <!-- enrollment -->
+        <div id="enrollment" v-if="module == 'enrollment'">
+            [[ module ]]
+        </div>
 
-    <!-- rank -->
-    <div id="income" style="display: none;">
-        Research Income
-    </div>
+        <!-- income -->
+        <div id="income" v-if="module == 'income'">
+            [[ module ]]
+        </div>
 
-    <!-- rank -->
-    <div id="completion" style="display: none;">
-        HDR Completion
-    </div>
+        <!-- completion -->
+        <div id="completion" v-if="module == 'completion'">
+            [[ module ]]
+        </div>
 
-    <!-- rank -->
-    <div id="mash-up" style="display: none;">
-        Mash Up
+        <!-- mash up -->
+        <div id="mash-up" v-if="module == 'mash-up'">
+            [[ module ]]
+        </div>
     </div>
 </div>
 </body>
 </html>
+
+<script>
+    var app = new Vue({
+        el: '#app',
+        data: {
+            module: 'university',
+        },
+        delimiters: ['[[', ']]'],
+        methods: {
+            section: function (name) {
+                this.module = name;
+            }
+        }
+    });
+</script>

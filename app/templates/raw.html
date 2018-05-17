@@ -1,23 +1,7 @@
-{% extends 'base.html'%}
+{% extends 'base.html' %}
 
 {% block body %}
-<div id="app">
-    <!-- nav bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand">CSDAU</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mr-auto">
-                <li id="raw-nav" class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('raw_data') }}">Raw Data</a>
-                </li>
-                <li id="analysis-nav" class="nav-item">
-                    <a class="nav-link" href="{{ url_for('analysis') }}">Analysis</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
 
-    <!-- content -->
     <div class="container mt-4">
         <!-- university -->
         <div id="university" v-if="module == 'university'">
@@ -61,30 +45,23 @@
         <div id="completion" v-if="module == 'completion'">
             [[ module ]]
         </div>
-
-        <!-- mash up -->
-        <div id="mash-up" v-if="module == 'mash-up'">
-            [[ module ]]
-        </div>
     </div>
-</div>
 
 {% endblock %}
 
-
 {% block script %}
-<script>
-    var app = new Vue({
-        el: '#app',
-        data: {
-            module: 'university',
-        },
-        delimiters: ['[[', ']]'],
-        methods: {
-            section: function (name) {
-                this.module = name;
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                module: 'university',
+            },
+            delimiters: ['[[', ']]'],
+            methods: {
+                section: function (name) {
+                    this.module = name;
+                }
             }
-        }
-    });
-</script>
+        });
+    </script>
 {% endblock %}

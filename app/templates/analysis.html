@@ -1,20 +1,4 @@
 {% extends 'base.html'%}
 
 {% block body %}
-<div id="app">
-    <!-- nav bar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand">CSDAU</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav mr-auto">
-                <li id="raw-nav" class="nav-item">
-                    <a class="nav-link" href="{{ url_for('raw_data') }}">Raw Data</a>
-                </li>
-                <li id="analysis-nav" class="nav-item active">
-                    <a class="nav-link" href="{{ url_for('analysis') }}">Analysis</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
-</div>
 {% endblock  %}

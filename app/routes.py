@@ -12,12 +12,12 @@ def index():
 
 @app.route('/raw', methods=['GET'])
 def raw_data():
-    return render_template('raw.html')
+    return render_template('raw.html', style={'raw': 'active', 'analysis': ''})
 
 
 @app.route('/analysis', methods=['GET'])
 def analysis():
-    return render_template('analysis.html')
+    return render_template('analysis.html', style={'raw': '', 'analysis': 'active'})
 
 
 @app.route('/mapTest', methods=['GET'])

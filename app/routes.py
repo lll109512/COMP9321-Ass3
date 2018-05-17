@@ -2,6 +2,7 @@ from app import app
 from flask import render_template, jsonify
 from flask_restful import reqparse
 from app.models import *
+from app.dataAnalysis import Enrollments_Analysis as ea
 import json
 
 
@@ -17,9 +18,19 @@ def maptest():
 def chartsTest():
     return render_template('chatsTest.html')
 
-@app.route('/route_name', methods=['POST'])
-def get_all():
-   pass
+@app.route('/analysis_get_enrollment_data', methods=['POST'])
+def analysis_get_enrollment_data():
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni','')
+    args = parser.parse_args()
+    data = ea.get_enrollment_data_by_name(args['uni'])
+    return jsonify(result=data),200
+
+
+@app.route('/analysis_get_enrollment_mean', methods=['POST'])
+def analysis_get_enrollment_mean():
+    data = ea.enrollment_mean_summary()
+    return jsonify(result=data), 200
 
 
 @app.route('/university', methods=['GET'])

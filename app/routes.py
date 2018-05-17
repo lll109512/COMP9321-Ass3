@@ -5,7 +5,7 @@ from app.models import *
 import json
 
 
-@app.route('/',methods=['GET'])
+@app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
 
@@ -22,22 +22,19 @@ def get_all():
    pass
 
 
-@app.route('/university',methods=['GET'])
+@app.route('/university', methods=['GET'])
 def university():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
-    parser.add_argument('p', 1, type=int)
-    parser.add_argument('rpp', 10, type=int)
     args = parser.parse_args()
     query = db.session.query(Universities)
-    offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
-    query_result = query.offset(offset).limit(args['rpp'])
+    query_result = query.all()
     results = []
     for row in query_result:
         results.append(row.name)
-    return jsonify(quantity=query.count(), result=results)
+    return jsonify(result=results)
 
 
 @app.route('/rank', methods=['GET'])
@@ -50,11 +47,10 @@ def rank():
         ('score', float),
         ('year', 'eq')
     ])
-    parser.add_argument('p', 1, type=int)
-    parser.add_argument('rpp', 10, type=int)
+    parser.add_argument('order', None)
+    parser.add_argument('desc', False, type=bool)
     args = parser.parse_args()
     query = db.session.query(Ranks, Universities).filter(Ranks.uni_id == Universities.id)
-    offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
     attribute_to_field = {
@@ -64,15 +60,13 @@ def rank():
         'year': 'year'
     }
     query = table_query_filter_builder(query, Ranks, args, attribute_to_field)
-    query_result = query.offset(offset).limit(args['rpp'])
+    query_result = query.all()
     results = []
     for uni_rank, uni in query_result:
-        rank_copied = vars(uni_rank).copy()
-        for field in neglect_fields:
-            rank_copied.pop(field)
+        rank_copied = without_unnecessary_fields(vars(uni_rank).copy())
         rank_copied['university'] = uni.name
         results.append(rank_copied)
-    return jsonify(quantity=query.count(), result=results)
+    return jsonify(result=results)
 
 
 @app.route('/enrollment', methods=['GET'])
@@ -85,11 +79,10 @@ def enrollment():
         ('offerRate', float),
         ('year', 'eq')
     ])
-    parser.add_argument('p', 1, type=int)
-    parser.add_argument('rpp', 10, type=int)
+    parser.add_argument('order', None)
+    parser.add_argument('desc', True, type=bool)
     args = parser.parse_args()
     query = db.session.query(Enrollments, Universities).filter(Enrollments.uni_id == Universities.id)
-    offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
     attribute_to_field = {
@@ -99,18 +92,16 @@ def enrollment():
         'year': 'year'
     }
     query = table_query_filter_builder(query, Enrollments, args, attribute_to_field)
-    query_result = query.offset(offset).limit(args['rpp'])
+    query_result = query.all()
     results = []
     for uni_enrollment, uni in query_result:
-        enrollment_copied = vars(uni_enrollment).copy()
-        for field in neglect_fields:
-            enrollment_copied.pop(field)
+        enrollment_copied = without_unnecessary_fields(vars(uni_enrollment).copy())
         enrollment_copied['university'] = uni.name
         results.append(enrollment_copied)
-    return jsonify(quantity=query.count(), result=results)
+    return jsonify(result=results)
 
 
-@app.route('/completion',methods=['GET'])
+@app.route('/completion', methods=['GET'])
 def completions():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -119,11 +110,10 @@ def completions():
         'totalWeighted',
         ('year', 'eq')
     ])
-    parser.add_argument('p', 1, type=int)
-    parser.add_argument('rpp', 10, type=int)
+    parser.add_argument('order', None)
+    parser.add_argument('desc', True, type=bool)
     args = parser.parse_args()
     query = db.session.query(HDR_completions, Universities).filter(HDR_completions.uni_id == Universities.id)
-    offset = (args['p'] - 1) * args['rpp']
     if args['uni'] != '':
         query = query.filter(Universities.name.like(f"%{args['uni']}%"))
     attribute_to_field = {
@@ -132,18 +122,16 @@ def completions():
         'year': 'year'
     }
     query = table_query_filter_builder(query, HDR_completions, args, attribute_to_field)
-    query_result = query.offset(offset).limit(args['rpp'])
+    query_result = query.all()
     results = []
     for uni_completion, uni in query_result:
-        completion_copied = vars(uni_completion).copy()
-        for field in neglect_fields:
-            completion_copied.pop(field)
+        completion_copied = without_unnecessary_fields(vars(uni_completion).copy())
         completion_copied['university'] = uni.name
         results.append(completion_copied)
-    return jsonify(quantity=query.count(), result=results)
+    return jsonify(result=results)
 
 
-@app.route('/income',methods=['GET'])
+@app.route('/income', methods=['GET'])
 def income():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -155,8 +143,8 @@ def income():
         'total',
         ('year', 'eq')
     ])
-    parser.add_argument('p', 1, type=int)
-    parser.add_argument('rpp', 10, type=int)
+    parser.add_argument('order', None)
+    parser.add_argument('desc', True, type=bool)
     args = parser.parse_args()
     query = db.session.query(Research_incomes, Universities).filter(Research_incomes.uni_id == Universities.id)
     if args['uni'] != '':
@@ -174,10 +162,18 @@ def income():
         iaof = json.loads(uni_income.industry_and_other_funding)
         crcf = json.loads(uni_income.cooperative_research_center_funding)
 
-        if (args['acg'] is None or (args['acg'] is not None and getattr(acg['Sub Total'], f'__{args["acgOp"]}__')(args['acg']))) and \
-                (args['opsrf'] is None or (args['opsrf'] is not None and getattr(opsrf['Sub Total.1'], f'__{args["opsrfOp"]}__')(args['opsrf']))) and \
-                (args['iaof'] is None or (args['iaof'] is not None and getattr(iaof['Sub Total.2'], f'__{args["iaofOp"]}__')(args['iaof']))) and \
-                (args['crcf'] is None or (args['crcf'] is not None and getattr(crcf['Sub Total.3'], f'__{args["crcfOp"]}__')(args['crcf']))):
+        if (args['acg'] is None or
+            args['acg'] is not None and
+            getattr(acg['Sub Total'], f'__{args["acgOp"]}__')(args['acg'])) and \
+                (args['opsrf'] is None or
+                 args['opsrf'] is not None and
+                 getattr(opsrf['Sub Total.1'], f'__{args["opsrfOp"]}__')(args['opsrf'])) and \
+                (args['iaof'] is None or
+                 args['iaof'] is not None and
+                 getattr(iaof['Sub Total.2'], f'__{args["iaofOp"]}__')(args['iaof'])) and \
+                (args['crcf'] is None or
+                 args['crcf'] is not None and
+                 getattr(crcf['Sub Total.3'], f'__{args["crcfOp"]}__')(args['crcf'])):
             row = {
                 'university': uni.name,
                 'year': uni_income.year,
@@ -188,12 +184,49 @@ def income():
                 'grand_total': uni_income.grand_total
             }
             results.append(row)
-    return jsonify(quantity=len(results), result=results)
+    return jsonify(result=results)
 
 
 @app.route('/mashup')
 def mashup():
-    pass
+    final = {}
+    delete_fields = ['uni_id', 'year', 'create_date', '_sa_instance_state']
+    # create all universities
+    universities = db.session.query(Universities).all()
+    university_name = {}
+    for university in universities:
+        final[university.name] = {
+            'id': university.id,
+            'rank': {},
+            'enrollment': {},
+            'income': {},
+            'completion': {}
+        }
+        university_name[university.id] = university.name
+    # rank data
+    ranks = db.session.query(Ranks).all()
+    for rank in ranks:
+        year_rank = without_unnecessary_fields(vars(rank).copy(), delete_fields)
+        final[university_name[rank.uni_id]]['rank'][rank.year] = year_rank
+    # enrollment data
+    enrollments = db.session.query(Enrollments).all()
+    for enrollment in enrollments:
+        year_enrollment = without_unnecessary_fields(vars(enrollment).copy(), delete_fields)
+        final[university_name[enrollment.uni_id]]['enrollment'][enrollment.year] = year_enrollment
+    # research income
+    incomes = db.session.query(Research_incomes).all()
+    for income in incomes:
+        year_income = without_unnecessary_fields(vars(income).copy(), delete_fields)
+        for field in ['australian_competitive_grants', 'other_public_sector_research_funding',
+                      'industry_and_other_funding', 'cooperative_research_center_funding']:
+            year_income[field] = json.loads(year_income[field])
+        final[university_name[income.uni_id]]['income'][income.year] = year_income
+    # completion
+    completions = db.session.query(HDR_completions).all()
+    for completion in completions:
+        year_completion = without_unnecessary_fields(vars(completion).copy(), delete_fields)
+        final[university_name[completion.uni_id]]['completion'][completion.year] = year_completion
+    return jsonify(result=final)
 
 
 def table_query_filter_builder(query, table, arguments, accepted_attributes_with_fields):
@@ -201,6 +234,12 @@ def table_query_filter_builder(query, table, arguments, accepted_attributes_with
         field = getattr(table, accepted_attributes_with_fields[attribute])
         if arguments[attribute]:
             query = query.filter(getattr(field, f'__{arguments[attribute + "Op"]}__')(arguments[attribute]))
+    print(arguments['desc'])
+    if arguments['order'] is not None:
+        field = getattr(table, accepted_attributes_with_fields[arguments['order']])
+        if arguments['desc']:
+            field = field.desc()
+        query = query.order_by(field)
     return query
 
 
@@ -216,8 +255,16 @@ def argument_adder(parser, to_add):
             for key in range(1, len(argument)):
                 if type(argument[key]) == str:
                     operator = argument[key]
-                else:
+                elif type(argument[key]) == type:
                     argument_type = argument[key]
             parser.add_argument(field + 'Op', operator)
             parser.add_argument(field, None, type=argument_type)
     return parser
+
+
+def without_unnecessary_fields(inputs, fields_to_delete=None):
+    if fields_to_delete is None:
+        fields_to_delete = neglect_fields
+    for field in fields_to_delete:
+        inputs.pop(field)
+    return inputs

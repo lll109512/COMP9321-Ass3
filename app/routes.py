@@ -9,6 +9,18 @@ import json
 def index():
     return render_template('index.html')
 
+@app.route('/maptest', methods=['GET'])
+def maptest():
+    return render_template('googleMapTest.html')
+
+@app.route('/chartsTest', methods=['GET'])
+def chartsTest():
+    return render_template('chatsTest.html')
+
+@app.route('/route_name', methods=['POST'])
+def get_all():
+   pass
+
 
 @app.route('/university',methods=['GET'])
 def university():

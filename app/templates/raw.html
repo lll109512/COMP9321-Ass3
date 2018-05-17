@@ -7,23 +7,11 @@
         <a class="navbar-brand">CSDAU</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav mr-auto">
-                <li id="university-nav" class="nav-item" v-bind:class="{ active: module == 'university' }">
-                    <span class="nav-link" v-on:click="section('university')">University</span>
+                <li id="raw-nav" class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('raw_data') }}">Raw Data</a>
                 </li>
-                <li id="rank-nav" class="nav-item" v-bind:class="{ active: module == 'rank' }">
-                    <span class="nav-link" v-on:click="section('rank')">Rank</span>
-                </li>
-                <li id="enrollment-nav" class="nav-item" v-bind:class="{ active: module == 'enrollment' }">
-                    <span class="nav-link" v-on:click="section('enrollment')">Enrollment</span>
-                </li>
-                <li id="income-nav" class="nav-item" v-bind:class="{ active: module == 'income' }">
-                    <span class="nav-link" v-on:click="section('income')">Research Income</span>
-                </li>
-                <li id="completion-nav" class="nav-item" v-bind:class="{ active: module == 'completion' }">
-                    <span class="nav-link" v-on:click="section('completion')">HDR Completion</span>
-                </li>
-                <li id="mash-up-nav" class="nav-item" v-bind:class="{ active: module == 'mash-up' }">
-                    <span class="nav-link" v-on:click="section('mash-up')">Mash Up</span>
+                <li id="analysis-nav" class="nav-item">
+                    <a class="nav-link" href="{{ url_for('analysis') }}">Analysis</a>
                 </li>
             </ul>
         </div>

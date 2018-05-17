@@ -1,5 +1,5 @@
 from app import app
-from flask import render_template, jsonify
+from flask import render_template, jsonify, redirect, url_for
 from flask_restful import reqparse
 from app.models import *
 import json
@@ -7,19 +7,32 @@ import json
 
 @app.route('/', methods=['GET'])
 def index():
-    return render_template('index.html')
+    return redirect(url_for('raw_data'))
 
-@app.route('/maptest', methods=['GET'])
-def maptest():
+
+@app.route('/raw', methods=['GET'])
+def raw_data():
+    return render_template('raw.html')
+
+
+@app.route('/analysis', methods=['GET'])
+def analysis():
+    return render_template('analysis.html')
+
+
+@app.route('/mapTest', methods=['GET'])
+def map_test():
     return render_template('googleMapTest.html')
 
+
 @app.route('/chartsTest', methods=['GET'])
-def chartsTest():
+def charts_test():
     return render_template('chatsTest.html')
+
 
 @app.route('/route_name', methods=['POST'])
 def get_all():
-   pass
+    pass
 
 
 @app.route('/university', methods=['GET'])

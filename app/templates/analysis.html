@@ -1,13 +1,81 @@
 {% extends 'base.html'%}
 
-{% block body %}
-<div id='analysis'>
-
-</div>
+{% block content %}
+    <div id='analysis'>
+        asd
+    </div>
 {% endblock  %}
 
 {% block script %}
 <script>
-    
+    var vm = new Vue({
+        el: '#main',
+        data: {
+            loaded_unidata: {},
+            loaded_summary_mean: {},
+            uni_name: 'Victoria University',
+            linechart: {},
+            chart_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                }
+            }
+        },
+        delimiters: ['[[', ']]'],
+        mounted: function () {
+            var that = this
+            var ctx = document.getElementById("myChart");
+            that.linechart = new Chart(ctx, that.chart_config);
+
+
+        },
+        methods: {
+            plot_enrollment_data: function () {
+                var that = this
+                axios.post('/analysis_get_enrollment_data', {
+                    uni: that.uni_name
+                }).then(function (response) {
+                    that.loaded_unidata = response.data.result
+                    console.log(that.loaded_unidata.labels)
+                    data = {
+                        label: that.uni_name,
+                        data: that.loaded_unidata.applications
+                    }
+                    that.chart_config.data.datasets.push(data)
+                    that.linechart.update()
+                }).catch(function (error) {
+                    console.log(error)
+                })
+            },
+            plot_enrollment_summary_mean: function () {
+                var that = this
+                axios.post('/analysis_get_enrollment_mean', {
+                }).then(function (response) {
+                    that.loaded_summary_mean = response.data.result
+                    var ctx = document.getElementById("myChart");
+                    var myLineChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: that.loaded_summary_mean.labels,
+                            datasets: [{
+                                label: 'applications',
+                                data: that.loaded_summary_mean.applications_mean
+                            }]
+                        }
+                    });
+                }).catch(function (error) {
+                    console.log(error)
+                })
+            }
+        },
+        computed: {
+
+        }
+
+
+    })
+
 </script>
 {% endblock %}

@@ -51,9 +51,7 @@ def rank():
     query_result = query.all()
     results = []
     for uni_rank, uni in query_result:
-        rank_copied = vars(uni_rank).copy()
-        for field in neglect_fields:
-            rank_copied.pop(field)
+        rank_copied = without_unnecessary_fields(vars(uni_rank).copy())
         rank_copied['university'] = uni.name
         results.append(rank_copied)
     return jsonify(result=results)
@@ -85,9 +83,7 @@ def enrollment():
     query_result = query.all()
     results = []
     for uni_enrollment, uni in query_result:
-        enrollment_copied = vars(uni_enrollment).copy()
-        for field in neglect_fields:
-            enrollment_copied.pop(field)
+        enrollment_copied = without_unnecessary_fields(vars(uni_enrollment).copy())
         enrollment_copied['university'] = uni.name
         results.append(enrollment_copied)
     return jsonify(result=results)
@@ -117,9 +113,7 @@ def completions():
     query_result = query.all()
     results = []
     for uni_completion, uni in query_result:
-        completion_copied = vars(uni_completion).copy()
-        for field in neglect_fields:
-            completion_copied.pop(field)
+        completion_copied = without_unnecessary_fields(vars(uni_completion).copy())
         completion_copied['university'] = uni.name
         results.append(completion_copied)
     return jsonify(result=results)
@@ -183,7 +177,44 @@ def income():
 
 @app.route('/mashup')
 def mashup():
-    pass
+    final = {}
+    delete_fields = ['uni_id', 'year', 'create_date', '_sa_instance_state']
+    # create all universities
+    universities = db.session.query(Universities).all()
+    university_name = {}
+    for university in universities:
+        final[university.name] = {
+            'id': university.id,
+            'rank': {},
+            'enrollment': {},
+            'income': {},
+            'completion': {}
+        }
+        university_name[university.id] = university.name
+    # rank data
+    ranks = db.session.query(Ranks).all()
+    for rank in ranks:
+        year_rank = without_unnecessary_fields(vars(rank).copy(), delete_fields)
+        final[university_name[rank.uni_id]]['rank'][rank.year] = year_rank
+    # enrollment data
+    enrollments = db.session.query(Enrollments).all()
+    for enrollment in enrollments:
+        year_enrollment = without_unnecessary_fields(vars(enrollment).copy(), delete_fields)
+        final[university_name[enrollment.uni_id]]['enrollment'][enrollment.year] = year_enrollment
+    # research income
+    incomes = db.session.query(Research_incomes).all()
+    for income in incomes:
+        year_income = without_unnecessary_fields(vars(income).copy(), delete_fields)
+        for field in ['australian_competitive_grants', 'other_public_sector_research_funding',
+                      'industry_and_other_funding', 'cooperative_research_center_funding']:
+            year_income[field] = json.loads(year_income[field])
+        final[university_name[income.uni_id]]['income'][income.year] = year_income
+    # completion
+    completions = db.session.query(HDR_completions).all()
+    for completion in completions:
+        year_completion = without_unnecessary_fields(vars(completion).copy(), delete_fields)
+        final[university_name[completion.uni_id]]['completion'][completion.year] = year_completion
+    return jsonify(result=final)
 
 
 def table_query_filter_builder(query, table, arguments, accepted_attributes_with_fields):
@@ -217,3 +248,11 @@ def argument_adder(parser, to_add):
             parser.add_argument(field + 'Op', operator)
             parser.add_argument(field, None, type=argument_type)
     return parser
+
+
+def without_unnecessary_fields(inputs, fields_to_delete=None):
+    if fields_to_delete is None:
+        fields_to_delete = neglect_fields
+    for field in fields_to_delete:
+        inputs.pop(field)
+    return inputs

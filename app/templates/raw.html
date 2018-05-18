@@ -17,13 +17,12 @@
         </nav>
 
         <!-- university -->
-        <div id="university" v-if="module == 'university'">
+        <div v-if="module == 'university'">
             <form>
                 <div class="row">
                     <div class="col">
-                        <label for="uni">University Name</label>
-                        <input v-model="uni" class="form-control"
-                               placeholder="Type any part of a university name, or just keep it blank">
+                        <label>University Name</label>
+                        <input-university-name v-model="uniName"></input-university-name>
                     </div>
                 </div>
                 <button @click="queryUniversity" class="btn btn-primary mt-2" type="button">Search</button>
@@ -44,22 +43,103 @@
         </div>
 
         <!-- rank -->
-        <div id="rank" v-if="module == 'rank'">
-            [[ module ]]
+        <div v-if="module == 'rank'">
+            <form>
+                <div class="row mt-2">
+                    <div class="col">
+                        <label>University Name</label>
+                        <input-university-name v-model="rankUni"></input-university-name>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="rankWorldOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>World Rank</label>
+                        <input-field v-model="rankWorld"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="rankNationalOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>National Rank</label>
+                        <input-field v-model="rankNational"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="rankScoreOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Score</label>
+                        <input-field v-model="rankScore"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="rankYearOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Year</label>
+                        <input-field v-model="rankYear"></input-field>
+                    </div>
+                </div>
+                <button @click="queryRank" class="btn btn-primary mt-2" type="button">Search</button>
+            </form>
+            <div class="mt-4 mb-2">[[ status ]]</div>
+            <table class="table table-striped" v-if="results != ''">
+                <thead>
+                <tr>
+                    <th>University</th>
+                    <th>World Rank</th>
+                    <th>National Rank</th>
+                    <th>Education Quality</th>
+                    <th>Alumni Employment</th>
+                    <th>Faculty Quality</th>
+                    <th>Publication</th>
+                    <th>Influence</th>
+                    <th>Citations</th>
+                    <th>Broad Impact</th>
+                    <th>Patent</th>
+                    <th>Score</th>
+                    <th>Year</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="result in results">
+                    <td>[[ result.university ]]</td>
+                    <td>[[ result.world_rank ]]</td>
+                    <td>[[ result.national_rank ]]</td>
+                    <td>[[ result.quality_of_education ]]</td>
+                    <td>[[ result.alumni_employment ]]</td>
+                    <td>[[ result.quality_of_faculty ]]</td>
+                    <td>[[ result.publications ]]</td>
+                    <td>[[ result.influence ]]</td>
+                    <td>[[ result.citations ]]</td>
+                    <td>[[ result.broad_impact ]]</td>
+                    <td>[[ result.patents ]]</td>
+                    <td>[[ result.score ]]</td>
+                    <td>[[ result.year ]]</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- enrollment -->
-        <div id="enrollment" v-if="module == 'enrollment'">
+        <div v-if="module == 'enrollment'">
             [[ module ]]
         </div>
 
         <!-- income -->
-        <div id="income" v-if="module == 'income'">
+        <div v-if="module == 'income'">
             [[ module ]]
         </div>
 
         <!-- completion -->
-        <div id="completion" v-if="module == 'completion'">
+        <div v-if="module == 'completion'">
             [[ module ]]
         </div>
     </div>
@@ -68,30 +148,101 @@
 
 {% block script %}
     <script>
+        Vue.component('input-university-name', {
+            props: ['universityName'],
+            template: `
+            <input :value="universityName" @input="$emit('input', $event.target.value)" class="form-control"
+            placeholder="Type any part of a university name, or just keep it blank">
+            `
+        });
+
+        Vue.component('input-field', {
+            props: ['value'],
+            template: `
+            <input :value="value" @input="$emit('input', $event.target.value)" class="form-control"
+            placeholder="(empty)">
+            `
+        });
+
+        Vue.component('select-operator', {
+            props: ['operator'],
+            template: `
+            <select :value="operator" @input="$emit('input', $event.target.value)" class="form-control">
+                <option value="lt">&lt;</option>
+                <option value="le">&lt;=</option>
+                <option value="eq">=</option>
+                <option value="ge">&gt;=</option>
+                <option value="gt">&gt;</option>
+            </select>
+            `
+        });
+
         const app = new Vue({
             el: '#app',
             data: {
                 module: 'university',
-                uni: '',
-                results: [],
+                uniName: '',
+                rankUni: '',
+                rankWorldOp: '',
+                rankWorld: '',
+                rankNationalOp: '',
+                rankNational: '',
+                rankScoreOp: '',
+                rankScore: '',
+                rankYearOp: '',
+                rankYear: '',
+                value: '',
+                results: '',
                 status: '',
             },
             delimiters: ['[[', ']]'],
             methods: {
                 section: function (name) {
                     this.module = name;
-                    this.results = [];
+                    this.results = '';
                     this.status = '';
-                    this.uni = '';
                 },
                 queryUniversity: function () {
                     let that = this;
                     that.status = 'Query has been send.';
-                    axios.get('/university?uni=' + this.uni)
+                    axios.get('/university?uni=' + this.uniName)
                         .then(function (response) {
                             that.status = 'Queried successfully.';
                             that.results = response.data.result;
-                            console.log(this.results);
+                        })
+                        .catch(function (error) {
+                            that.status = 'Query failed.';
+                            console.log(error);
+                        });
+                },
+                queryRank: function () {
+                    let that = this;
+                    that.status = 'Query has been send.';
+                    let parameters = [];
+                    if (that.rankUni !== '') parameters.push('uni=' + that.rankUni);
+                    if (that.rankWorld !== '') {
+                        parameters.push('worldRank=' + that.rankWorld);
+                        if (that.rankWorldOp !== '') parameters.push('worldRankOp=' + that.rankWorldOp);
+                    }
+                    if (that.rankNational !== '') {
+                        parameters.push('nationalRank=' + that.rankNational);
+                        if (that.rankNationalOp !== '') parameters.push('nationalRankOp=' + that.rankNationalOp);
+                    }
+                    if (that.rankScore !== '') {
+                        parameters.push('score=' + that.rankScore);
+                        if (that.rankScoreOp !== '') parameters.push('scoreOp=' + that.rankScoreOp);
+                    }
+                    if (that.rankYear !== '') {
+                        parameters.push('year=' + that.rankYear);
+                        if (that.rankYearOp !== '') parameters.push('yearOp=' + that.rankYearOp);
+                    }
+                    let queryUrl = '/rank?' + parameters.join('&');
+                    console.log(queryUrl);
+                    axios.get(queryUrl)
+                        .then(function (response) {
+                            that.status = 'Queried successfully.';
+                            that.results = response.data.result;
+                            console.log(response.data.result);
                         })
                         .catch(function (error) {
                             that.status = 'Query failed.';
@@ -101,4 +252,5 @@
             }
         });
     </script>
+
 {% endblock %}

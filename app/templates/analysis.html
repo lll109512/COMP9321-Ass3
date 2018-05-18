@@ -1,74 +1,303 @@
 {% extends 'base.html'%}
+{% block style %}
+<style type="text/css">
+    .box-flex{
+        display: -webkit-box;      /* OLD - iOS 6-, Safari 3.1-6 */
+        display: -moz-box;         /* OLD - Firefox 19- (buggy but mostly works) */
+        display: -ms-flexbox;      /* TWEENER - IE 10 */
+        display: -webkit-flex;     /* NEW - Chrome */
+        display: flex;            /* NEW, Spec - Opera 12.1, Firefox 20+ */
+    } 
+    .flex{
+        width: 0;
+        -webkit-box-flex: 1;      /* OLD - iOS 6-, Safari 3.1-6 */
+        -moz-box-flex: 1;         /* OLD - Firefox 19- */
+        /*width: 20%;*/           /*   For old syntax, otherwise collapses. */
+        -webkit-flex: 1;          /* Chrome */
+        -ms-flex: 1;              /* IE 10 */
+        flsex: 1;
+    }
+</style>
+<script src="https://unpkg.com/vue-select@latest"></script>
+{% endblock %}
 
 {% block content %}
-    <div id='analysis'>
-        asd
+    <div class="card" id='enrollments'>
+        <!-- <div class="card-header text-center">
+            Enrollments related
+        </div> -->
+        <div class="card-header text-center">
+                    <h5>Enrollments related</h5>
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @click='current_tab=0' :class="current_tab==0?'active':''">State</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" @click='current_tab=1' :class="current_tab==1?'active':''">University</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div id='state_wrapper' v-show="current_tab==0">
+                <div class="box-flex">
+                    <div class="flex">
+                        <canvas id="state_application_chart"></canvas>
+                    </div>
+                    <div class="flex">
+                        <canvas id="state_offer_chart"></canvas>
+                    </div>
+                </div>
+                <div class="box-flex">
+                    <div class="flex">
+                        <canvas id="state_offer_rate_chart"></canvas>
+                    </div>
+                    <div class="flex">
+                    </div>
+                </div>
+            </div>
+            <div id="university" v-show="current_tab==1">
+                <div class="form-group">
+                    <div class="input-group">
+                        <div class="form-control">
+                            <v-select :options="search_options" v-model="ready_to_add_uni" @search="onSearch"></v-select>
+                        </div>
+                        <!-- <input type="text" class="form-control" id="uni_name" placeholder="University name" v-model="ready_to_add_uni"> -->
+                        <button type="button" class="btn btn-primary" name='add_uni_btn' @click='add_plot_uni'>Add University</button>
+                    </div>
+                </div>
+                <canvas id="uni_application_chart"></canvas>
+                <canvas id="uni_offer_chart"></canvas>
+                <canvas id="uni_offer_rate_chart"></canvas>
+            </div>
+        </div>
     </div>
 {% endblock  %}
 
 {% block script %}
 <script>
+    Vue.component("v-select", VueSelect.VueSelect);
     var vm = new Vue({
-        el: '#main',
+        el: '#enrollments',
         data: {
-            loaded_unidata: {},
-            loaded_summary_mean: {},
-            uni_name: 'Victoria University',
-            linechart: {},
-            chart_config: {
+            current_tab:0,
+            loaded_summary: {},
+            search_options:[],
+            colors:[
+                "rgb(54, 162, 235)",
+                "rgb(75, 192, 192)",
+                "rgb(201, 203, 207)",
+                "rgb(255, 159, 64)",
+                "rgb(153, 102, 255)",
+                "rgb(255, 99, 132)",
+                "rgb(255, 205, 86)",
+                "rgb(52, 227, 114)"
+            ],
+            eac_line_chart: {},
+            eoc_line_chart: {},
+            eorc_line_chart: {},
+            uni_application_line_chart:{},
+            uni_offer_line_chart:{},
+            uni_offer_rate_line_chart:{},
+            eac_config: {
                 type: 'line',
                 data: {
                     labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
                     datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Application'
+                    }
                 }
-            }
+            },
+            eoc_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Offer'
+                    }
+                }
+            },
+            eorc_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Offer rate'
+                    }
+                }
+            },
+            uni_application_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Application'
+                    }
+                }
+            },
+            uni_offer_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Offer'
+                    }
+                }
+            },
+            uni_offer_rate_config: {
+                type: 'line',
+                data: {
+                    labels: [2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Offer rate'
+                    }
+                }
+            },
+            ready_to_add_uni:'',
+            added_uni:[],
         },
         delimiters: ['[[', ']]'],
         mounted: function () {
             var that = this
-            var ctx = document.getElementById("myChart");
-            that.linechart = new Chart(ctx, that.chart_config);
+            that.eac_line_chart = new Chart($('#state_application_chart'), that.eac_config);
+            that.eoc_line_chart = new Chart($('#state_offer_chart'), that.eoc_config);
+            that.eorc_line_chart = new Chart($('#state_offer_rate_chart'), that.eorc_config);
+            that.uni_application_line_chart = new Chart($('#uni_application_chart'), that.uni_application_config);
+            that.uni_offer_line_chart = new Chart($('#uni_offer_chart'), that.uni_offer_config);
+            that.uni_offer_rate_line_chart = new Chart($('#uni_offer_rate_chart'), that.uni_offer_rate_config);
+            that.plot_enrollment_state_summary()
 
 
         },
         methods: {
-            plot_enrollment_data: function () {
+            plot_enrollment_state_summary: function () {
                 var that = this
-                axios.post('/analysis_get_enrollment_data', {
-                    uni: that.uni_name
+                axios.post('/analysis_enrollments', {
+                    methods:'state_mean_summary'
                 }).then(function (response) {
-                    that.loaded_unidata = response.data.result
-                    console.log(that.loaded_unidata.labels)
-                    data = {
-                        label: that.uni_name,
-                        data: that.loaded_unidata.applications
+                    that.loaded_summary = response.data.result
+                    var index = 0
+                    for(var key in that.loaded_summary){
+                        if (!that.loaded_summary.hasOwnProperty(key)) continue;
+                        var color = that.colors[index % that.colors.length]
+                        that.eac_config.data.datasets.push({
+                            label: key,
+                            data: that.loaded_summary[key]['applications_mean'],
+                            fill:false,
+                            borderColor: color,
+                            backgroundColor: color
+                        })
+                        that.eoc_config.data.datasets.push({
+                            label: key,
+                            data: that.loaded_summary[key]['offers_mean'],
+                            fill: false,
+                            borderColor: color,
+                            backgroundColor: color
+                        })
+                        that.eorc_config.data.datasets.push({
+                            label: key,
+                            data: that.loaded_summary[key]['offer_rates_mean'],
+                            fill: false,
+                            borderColor: color,
+                            backgroundColor: color
+                        })
+                        that.eac_line_chart.update()
+                        that.eoc_line_chart.update()
+                        that.eorc_line_chart.update()
+                        index++
+                        
                     }
-                    that.chart_config.data.datasets.push(data)
-                    that.linechart.update()
+                        
                 }).catch(function (error) {
                     console.log(error)
                 })
             },
-            plot_enrollment_summary_mean: function () {
+            add_plot_uni:function(){
                 var that = this
-                axios.post('/analysis_get_enrollment_mean', {
-                }).then(function (response) {
-                    that.loaded_summary_mean = response.data.result
-                    var ctx = document.getElementById("myChart");
-                    var myLineChart = new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: that.loaded_summary_mean.labels,
-                            datasets: [{
-                                label: 'applications',
-                                data: that.loaded_summary_mean.applications_mean
-                            }]
-                        }
-                    });
+                if(that.added_uni.includes(that.ready_to_add_uni.label)){
+                    new Noty({
+                        theme: 'sunset',
+                        type: 'error',
+                        text: 'University has been added',
+                        timeout: 2000,
+                    }).show()
+                    return 
+                }
+                axios.post('/analysis_enrollments',{
+                    methods: 'by_uni_name',
+                    uni: that.ready_to_add_uni.label
+                }).then(function(response){
+                    result = response.data.result
+                    console.log(result)
+                    var color = that.colors[that.uni_application_config.data.datasets.length % that.colors.length]
+                    that.uni_application_config.data.datasets.push({
+                        label: that.ready_to_add_uni.label,
+                        data: result.applications,
+                        fill: false,
+                        borderColor: color,
+                        backgroundColor: color
+                    })
+                    that.uni_offer_config.data.datasets.push({
+                        label: that.ready_to_add_uni.label,
+                        data: result.offers,
+                        fill: false,
+                        borderColor: color,
+                        backgroundColor: color
+                    })
+                    that.uni_offer_rate_config.data.datasets.push({
+                        label: that.ready_to_add_uni.label,
+                        data: result.offer_rates,
+                        fill: false,
+                        borderColor: color,
+                        backgroundColor: color
+                    })
+                    that.uni_application_line_chart.update()
+                    that.uni_offer_line_chart.update()
+                    that.uni_offer_rate_line_chart.update()
                 }).catch(function (error) {
-                    console.log(error)
+                    new Noty({
+                        theme: 'sunset',
+                        type: 'error',
+                        text: 'University has not enrollment record',
+                        timeout: 2000,
+                    }).show()
                 })
-            }
+                that.added_uni.push(that.ready_to_add_uni.label)
+            },
+            onSearch:function(search, loading){
+                loading(true);
+                this.search(loading, search, this);
+            },
+            search: _.debounce((loading, search, vm) => {
+                axios.post('/get_uni_list', {}).then(function (response) {
+                    vm.search_options = response.data.result
+                    loading(false);}).catch(function (error){
+                        console.log(error)
+                    })
+            }, 500)
         },
         computed: {
 

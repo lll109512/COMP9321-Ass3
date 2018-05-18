@@ -10,3 +10,4 @@ def get_LatLong(address:str):
     return location['lat'],location['lng']
 
 
+

@@ -30,23 +30,36 @@ def map_test():
 def charts_test():
     return render_template('chatsTest.html')
 
-@app.route('/analysis_get_enrollment_data', methods=['POST'])
-def analysis_get_enrollment_data():
-    parser = reqparse.RequestParser()
-    parser.add_argument('uni','')
-    args = parser.parse_args()
-    data = ea.get_enrollment_data_by_name(args['uni'])
+@app.route('/get_uni_list', methods=['POST'])
+def get_uni_list():
+    unis = Universities.query.all()
+    data = []
+    for uni in unis:
+        data.append({
+            'id':uni.id,
+            'label':uni.name
+        })
     return jsonify(result=data),200
 
 
-@app.route('/analysis_get_enrollment_mean', methods=['POST'])
-def analysis_get_enrollment_mean():
-    data = ea.enrollment_mean_summary()
-    return jsonify(result=data), 200
+@app.route('/analysis_enrollments', methods=['POST'])
+def analysis_enrollments():
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni','')
+    parser.add_argument('methods','')
+    args = parser.parse_args()
+    if args['methods'] == 'by_uni_name':
+        data = ea.get_enrollment_data_by_name(args['uni'])
+        if not data['applications']:
+            return jsonify(error=1),400
+    elif args['methods'] == 'all_mean_summary':
+        data = ea.enrollment_mean_summary()
+    elif args['methods'] == 'state_mean_summary':
+        data = ea.enrollment_mean_summary_by_state()
+    else:
+        return jsonify(error=1),400
+    return jsonify(result=data),200
 
-@app.route('/route_name', methods=['POST'])
-def get_all():
-    pass
 
 
 @app.route('/university', methods=['GET'])

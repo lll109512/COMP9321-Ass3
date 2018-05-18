@@ -5,6 +5,7 @@ from datetime import datetime
 class Universities(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, unique=True)
+    state = db.Column(db.String(8))
     rank = db.relationship('Ranks', backref='universities', lazy='dynamic')
     enrollment = db.relationship('Enrollments', backref='universities', lazy='dynamic')
     research_income = db.relationship('Research_incomes', backref='universities', lazy='dynamic')

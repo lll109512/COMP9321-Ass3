@@ -1,28 +1,45 @@
 {% extends 'base.html' %}
 
-{% block body %}
+{% block content %}
+    <div id="app">
+        <!-- nav -->
+        <nav class="nav nav-pills nav-fill mt-2 mb-4">
+            <a class="nav-item nav-link" :class="{ active: module == 'university'}"
+               @click="section('university')" href="#">University</a>
+            <a class="nav-item nav-link" :class="{ active: module == 'rank'}"
+               @click="section('rank')" href="#">Rank</a>
+            <a class="nav-item nav-link" :class="{ active: module == 'enrollment'}"
+               @click="section('enrollment')" href="#">Enrollment</a>
+            <a class="nav-item nav-link" :class="{ active: module == 'income'}"
+               @click="section('income')" href="#">Income</a>
+            <a class="nav-item nav-link" :class="{ active: module == 'completion'}"
+               @click="section('completion')" href="#">Completion</a>
+        </nav>
 
-    <div>
         <!-- university -->
         <div id="university" v-if="module == 'university'">
             <form>
                 <div class="row">
                     <div class="col">
-                        <label for="uni-uni">University</label>
-                        <input type="text" class="form-control" id="uni-uni" placeholder="University name">
+                        <label for="uni">University Name</label>
+                        <input v-model="uni" class="form-control"
+                               placeholder="Type any part of a university name, or just keep it blank">
                     </div>
                 </div>
-                <button id="uni-search" class="btn btn-primary mt-2" type="button">Search</button>
+                <button @click="queryUniversity" class="btn btn-primary mt-2" type="button">Search</button>
             </form>
-            <div id="uni-status" class="mt-4 mb-2"></div>
-            <table id="uni-table" class="table table-striped" style="display: none;">
+            <div class="mt-4 mb-2">[[ status ]]</div>
+            <table class="table table-striped" v-if="results != ''">
                 <thead>
                 <tr>
-                    <th>#</th>
                     <th>University</th>
                 </tr>
                 </thead>
-                <tbody id="uni-tbody"></tbody>
+                <tbody>
+                <tr v-for="result in results">
+                    <td>[[ result ]]</td>
+                </tr>
+                </tbody>
             </table>
         </div>
 
@@ -51,15 +68,35 @@
 
 {% block script %}
     <script>
-        var app = new Vue({
+        const app = new Vue({
             el: '#app',
             data: {
                 module: 'university',
+                uni: '',
+                results: [],
+                status: '',
             },
             delimiters: ['[[', ']]'],
             methods: {
                 section: function (name) {
                     this.module = name;
+                    this.results = [];
+                    this.status = '';
+                    this.uni = '';
+                },
+                queryUniversity: function () {
+                    let that = this;
+                    that.status = 'Query has been send.';
+                    axios.get('/university?uni=' + this.uni)
+                        .then(function (response) {
+                            that.status = 'Queried successfully.';
+                            that.results = response.data.result;
+                            console.log(this.results);
+                        })
+                        .catch(function (error) {
+                            that.status = 'Query failed.';
+                            console.log(error);
+                        });
                 }
             }
         });

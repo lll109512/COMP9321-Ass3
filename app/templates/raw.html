@@ -50,6 +50,14 @@
                         <label>University Name</label>
                         <input-university-name v-model="rankUni"></input-university-name>
                     </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="rankYearOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Year</label>
+                        <input-field v-model="rankYear"></input-field>
+                    </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col-2">
@@ -78,13 +86,21 @@
                         <label>Score</label>
                         <input-field v-model="rankScore"></input-field>
                     </div>
-                    <div class="col-2">
-                        <label>Operator</label>
-                        <select-operator v-model="rankYearOp"></select-operator>
+                    <div class="col-lg-2">
+                        <label>Ascend</label>
+                        <select v-model="rankOrder" class="form-control">
+                            <option value="desc">DESC</option>
+                            <option value="asc">ASC</option>
+                        </select>
                     </div>
-                    <div class="col-4">
-                        <label>Year</label>
-                        <input-field v-model="rankYear"></input-field>
+                    <div class="col-lg-4">
+                        <label>Order By</label>
+                        <select v-model="rankOrderBy" class="form-control">
+                            <option value="worldRank">World Rank</option>
+                            <option value="nationalRank">National Rank</option>
+                            <option value="score">Score</option>
+                            <option value="year">Year</option>
+                        </select>
                     </div>
                 </div>
                 <button @click="queryRank" class="btn btn-primary mt-2" type="button">Search</button>
@@ -96,9 +112,9 @@
                     <th>University</th>
                     <th>World Rank</th>
                     <th>National Rank</th>
-                    <th>Education Quality</th>
+                    <th>Quality of Education</th>
                     <th>Alumni Employment</th>
-                    <th>Faculty Quality</th>
+                    <th>Quality of Faculty</th>
                     <th>Publication</th>
                     <th>Influence</th>
                     <th>Citations</th>
@@ -130,7 +146,88 @@
 
         <!-- enrollment -->
         <div v-if="module == 'enrollment'">
-            [[ module ]]
+            <form>
+                <div class="row mt-2">
+                    <div class="col">
+                        <label>University Name</label>
+                        <input-university-name v-model="enrollUni"></input-university-name>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="enrollYearOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Year</label>
+                        <input-field v-model="enrollYear"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="enrollApplicationOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Applications</label>
+                        <input-field v-model="enrollApplication"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="enrollOfferOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Offers</label>
+                        <input-field v-model="enrollOffer"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-lg-2">
+                        <label>Operator</label>
+                        <select-operator v-model="enrollRateOp"></select-operator>
+                    </div>
+                    <div class="col-lg-4">
+                        <label>Offer rate</label>
+                        <input-field v-model="enrollRate"></input-field>
+                    </div>
+                    <div class="col-lg-2">
+                        <label>Ascend</label>
+                        <select v-model="enrollOrder" class="form-control">
+                            <option value="desc">DESC</option>
+                            <option value="asc">ASC</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4">
+                        <label>Order By</label>
+                        <select v-model="enrollOrderBy" class="form-control">
+                            <option value="application">Application</option>
+                            <option value="offer">Offer</option>
+                            <option value="offerRate">Offer rate</option>
+                            <option value="year">Year</option>
+                        </select>
+                    </div>
+                </div>
+                <button @click="queryEnrollment" class="btn btn-primary mt-2" type="button">Search</button>
+            </form>
+            <div class="mt-4 mb-2">[[ status ]]</div>
+            <table class="table table-striped" v-if="results != ''">
+                <thead>
+                <tr>
+                    <th>University</th>
+                    <th>Applications</th>
+                    <th>Offers</th>
+                    <th>Offer rate</th>
+                    <th>Year</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="result in results">
+                    <td>[[ result.university ]]</td>
+                    <td>[[ result.applications ]]</td>
+                    <td>[[ result.offers ]]</td>
+                    <td>[[ result.offer_rates ]]</td>
+                    <td>[[ result.year ]]</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- income -->
@@ -182,16 +279,10 @@
             data: {
                 module: 'university',
                 uniName: '',
-                rankUni: '',
-                rankWorldOp: '',
-                rankWorld: '',
-                rankNationalOp: '',
-                rankNational: '',
-                rankScoreOp: '',
-                rankScore: '',
-                rankYearOp: '',
-                rankYear: '',
-                value: '',
+                rankUni: '', rankYearOp: '', rankYear: '', rankWorldOp: '', rankWorld: '',
+                rankNationalOp: '', rankNational: '', rankScoreOp: '', rankScore: '', rankOrder: '', rankOrderBy: '',
+                enrollUni: '', enrollYearOp: '', enrollYear: '', enrollApplicationOp: '', enrollApplication: '',
+                enrollOfferOp: '', enrollOffer: '', enrollRateOp: '', enrollRate: '', enrollOrder: '', enrollOrderBy: '',
                 results: '',
                 status: '',
             },
@@ -236,6 +327,12 @@
                         parameters.push('year=' + that.rankYear);
                         if (that.rankYearOp !== '') parameters.push('yearOp=' + that.rankYearOp);
                     }
+                    if (that.rankOrderBy !== '') {
+                        parameters.push('order=' + that.rankOrderBy);
+                        if (that.rankOrder === 'desc') {
+                            parameters.push('desc=1');
+                        }
+                    }
                     let queryUrl = '/rank?' + parameters.join('&');
                     console.log(queryUrl);
                     axios.get(queryUrl)
@@ -246,6 +343,48 @@
                         })
                         .catch(function (error) {
                             that.status = 'Query failed.';
+                            console.log(error);
+                        });
+                },
+                queryEnrollment: function () {
+                    let that = this;
+                    that.status = 'Query has been send.';
+                    let parameters = [];
+                    if (that.enrollUni !== '') parameters.push('uni=' + that.enrollUni);
+                    if (that.enrollYear !== '') {
+                        parameters.push('year=' + that.enrollYear);
+                        if (that.enrollYearOp !== '') parameters.push('yearOp=' + that.enrollYearOp);
+                    }
+                    if (that.enrollApplication !== '') {
+                        parameters.push('application=' + that.enrollApplication);
+                        if (that.enrollApplicationOp !== '') parameters.push('applicationOp=' + that.enrollApplicationOp);
+                    }
+                    if (that.enrollOffer !== '') {
+                        parameters.push('offer=' + that.enrollOffer);
+                        if (that.enrollOfferOp !== '') parameters.push('offerOp=' + that.enrollOfferOp);
+                    }
+                    if (that.enrollRate !== '') {
+                        parameters.push('offerRate=' + that.enrollRate);
+                        if (that.enrollRateOp !== '') parameters.push('offerRateOp=' + that.enrollRateOp);
+                    }
+                    if (that.enrollOrderBy !== '') {
+                        parameters.push('order=' + that.orderBy);
+                        if (that.enrollOrder === 'asc') {
+                            parameters.push('desc=');
+                        }
+                    }
+                    let queryUrl = '/enrollment?' + parameters.join('&');
+                    that.query(queryUrl, this);
+                },
+                query: function (queryUrl, handle) {
+                    axios.get(queryUrl)
+                        .then(function (response) {
+                            handle.status = 'Queried successfully.';
+                            handle.results = response.data.result;
+                            console.log(response.data.result);
+                        })
+                        .catch(function (error) {
+                            handle.status = 'Query failed.';
                             console.log(error);
                         });
                 }

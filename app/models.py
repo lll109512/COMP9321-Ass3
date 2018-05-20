@@ -10,6 +10,7 @@ class Universities(db.Model):
     enrollment = db.relationship('Enrollments', backref='universities', lazy='dynamic')
     research_income = db.relationship('Research_incomes', backref='universities', lazy='dynamic')
     HDR_completion = db.relationship('HDR_completions', backref='universities', lazy='dynamic')
+    geo_info = db.relationship('Geo_info', backref='universities', lazy='dynamic')
     create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
     def __repr__(self):
@@ -85,6 +86,13 @@ class HDR_completions(db.Model):
 
     def __repr__(self):
         return f'<HDR Completion for {self.uni_id}>'
+
+class Geo_info(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))
+    lat = db.Column(db.Float)
+    lng = db.Column(db.Float)
+    create_date = db.Column(db.DateTime(), default=datetime.utcnow)
 
 
 neglect_fields = ['id', 'uni_id', 'create_date', '_sa_instance_state']

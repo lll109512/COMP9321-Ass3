@@ -1,4 +1,5 @@
 from app import loadData as ld
+from app import geoHelper as gh
 
 available_institution, research_data = ld.load_research_data(
     './data/2015_2016_research_income_and_hdr_completions_data.xlsx')
@@ -11,3 +12,5 @@ enrollments_data = ld.load_enrollments_data(
     './data/undergraduate_applications_offers_and_acceptances_2017_appendices_1.xlsm')
 ld.insert_data(available_institution, research_data, HDR_data,
                cwur_data, enrollments_data, university_state)
+
+gh.insert_geo_data()

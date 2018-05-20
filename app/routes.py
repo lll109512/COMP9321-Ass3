@@ -3,6 +3,8 @@ from flask import render_template, jsonify, redirect, url_for
 from flask_restful import reqparse
 from app.models import *
 from app.dataAnalysis import Enrollments_Analysis as ea
+from app.dataAnalysis import HDR_Income_Analysis as hia
+import app.geoHelper as gh
 import json
 
 
@@ -26,10 +28,6 @@ def map_test():
     return render_template('googleMapTest.html')
 
 
-@app.route('/chartsTest', methods=['GET'])
-def charts_test():
-    return render_template('chatsTest.html')
-
 @app.route('/get_uni_list', methods=['POST'])
 def get_uni_list():
     unis = Universities.query.all()
@@ -42,6 +40,44 @@ def get_uni_list():
     return jsonify(result=data),200
 
 
+@app.route('/analysis_hdr_incomes', methods=['POST'])
+def analysis_hdr_incomes():
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni', '')
+    parser.add_argument('methods', '')
+    args = parser.parse_args()
+    if args['methods'] == 'by_uni_name':
+        pass
+    elif args['methods'] == 'hdr_state_mean_summary':
+        data = hia.HDR_state_summary()
+    elif args['methods'] == 'income_state_mean_summary':
+        data = hia.Income_state_summary()
+    elif agrs['methods'] == 'all_income':
+        data = hia.all_uni_Income()
+    elif agrs['methods'] == 'all_hdr':
+        data = hia.all_uni_HDR()
+    elif args['methods'] == 'all_both':
+        data = {'hdr':hia.all_uni_HDR(),'income':hia.all_uni_Income()}
+    else:
+        return jsonify(error=1), 400
+    return jsonify(result=data),200
+
+
+@app.route('/get_uni_location', methods=['POST'])
+def get_uni_location():
+    parser = reqparse.RequestParser()
+    parser.add_argument('uni', '')
+    parser.add_argument('methods', '')
+    args = parser.parse_args()
+    if args['methods'] == 'by_uni_name':
+        data = gh.get_coordinates_by_uni(args['uni'])
+    elif args['methods'] == 'all':
+        data = gh.get_all_coordinates_from_db()
+    else:
+        return jsonify(error=1), 400
+    return jsonify(result=data), 200
+
+
 @app.route('/analysis_enrollments', methods=['POST'])
 def analysis_enrollments():
     parser = reqparse.RequestParser()
@@ -52,8 +88,8 @@ def analysis_enrollments():
         data = ea.get_enrollment_data_by_name(args['uni'])
         if not data['applications']:
             return jsonify(error=1),400
-    elif args['methods'] == 'all_mean_summary':
-        data = ea.enrollment_mean_summary()
+    elif args['methods'] == 'all_uni':
+        data = ea.get_all_enrollments_data()
     elif args['methods'] == 'state_mean_summary':
         data = ea.enrollment_mean_summary_by_state()
     else:

@@ -17,15 +17,14 @@
         -ms-flex: 1;              /* IE 10 */
         flsex: 1;
     }
+    /* Optional: Makes the sample page fill the window. */
 </style>
 <script src="https://unpkg.com/vue-select@latest"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC3Tji10eVgL2CRMW6U8AEFggEV-jLWmBk&libraries=visualization"></script>
 {% endblock %}
 
 {% block content %}
     <div class="card" id='enrollments'>
-        <!-- <div class="card-header text-center">
-            Enrollments related
-        </div> -->
         <div class="card-header text-center">
                     <h5>Enrollments related</h5>
             <ul class="nav nav-tabs card-header-tabs">
@@ -61,7 +60,6 @@
                         <div class="form-control">
                             <v-select :options="search_options" v-model="ready_to_add_uni" @search="onSearch"></v-select>
                         </div>
-                        <!-- <input type="text" class="form-control" id="uni_name" placeholder="University name" v-model="ready_to_add_uni"> -->
                         <button type="button" class="btn btn-primary" name='add_uni_btn' @click='add_plot_uni'>Add University</button>
                     </div>
                 </div>
@@ -71,12 +69,33 @@
             </div>
         </div>
     </div>
+    <br>
+    <div class="card" id='HDR_research_income'>
+        <div class="card-header text-center">
+            <h5>Research related</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="2015_hdr_income"></canvas>
+            <canvas id="2016_hdr_income"></canvas>
+        </div>
+
+    </div>
+    <br>
+    <div class="card" id='heatmap'>
+        <div class="card-header text-center">
+            <h5>Information heat map</h5>
+        </div>
+        <div class="card-body" style="height:700px">
+            <div id="map" style="width: 100%; height: 100%"></div>
+        </div>
+    
+    </div>
 {% endblock  %}
 
 {% block script %}
 <script>
     Vue.component("v-select", VueSelect.VueSelect);
-    var vm = new Vue({
+    var envm = new Vue({
         el: '#enrollments',
         data: {
             current_tab:0,
@@ -90,7 +109,7 @@
                 "rgb(153, 102, 255)",
                 "rgb(255, 99, 132)",
                 "rgb(255, 205, 86)",
-                "rgb(52, 227, 114)"
+                "rgb(98, 50, 96)"
             ],
             eac_line_chart: {},
             eoc_line_chart: {},
@@ -302,8 +321,236 @@
         computed: {
 
         }
+    })
 
+    var hdr_inc_vm = new Vue({
+        el:'#HDR_research_income',
+        data:{
+            hdr_state_mean_summary:{},
+            income_state_mean_summary:{},
+            hdr_income_2015_chart: {},
+            hdr_income_2016_chart: {},
+            colors: [
+                "rgb(54, 162, 235)",
+                "rgb(75, 192, 192)",
+                "rgb(201, 203, 207)",
+                "rgb(255, 159, 64)",
+                "rgb(153, 102, 255)",
+                "rgb(255, 99, 132)",
+                "rgb(255, 205, 86)",
+                "rgb(98, 50, 96)"
+            ],
+            hdr_income_2015_chart_config: {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Higher Degree by Research (HDR) Student Completions and Research Income, 2015'
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
 
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+                                
+                                return label;
+                            }
+                        }
+                    }
+                }
+            },
+            hdr_income_2016_chart_config: {
+                type: 'doughnut',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    title: {
+                        display: true,
+                        text: 'Higher Degree by Research (HDR) Student Completions and Research Income, 2016 '
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                var label = data.datasets[tooltipItem.datasetIndex].label || '';
+
+                                if (label) {
+                                    label += ': ';
+                                }
+                                label += data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
+
+                                return label;
+                            }
+                        }
+                    }
+                }
+            },
+
+        },
+        mounted:function(){
+            var that = this
+            that.hdr_income_2015_chart = new Chart($('#2015_hdr_income'), that.hdr_income_2015_chart_config);
+            that.hdr_income_2016_chart = new Chart($('#2016_hdr_income'), that.hdr_income_2016_chart_config);
+            that.load_plot_hdr()
+        },
+        methods:{
+            load_plot_hdr:function(){
+                var that = this
+                axios.post('/analysis_hdr_incomes',{
+                    methods:'hdr_state_mean_summary'
+                }).then(function(response){
+                    that.hdr_state_mean_summary = response.data.result
+                    var labels = []
+                    var data_2015 = []
+                    var data_2016 = []
+                    for (var key in that.hdr_state_mean_summary) {
+                        if (!that.hdr_state_mean_summary.hasOwnProperty(key)) continue;
+                        labels.push(key)
+                        data_2015.push(that.hdr_state_mean_summary[key]['2015']['mean_grand_total_Non_I_and_I_weighted'])
+                        data_2016.push(that.hdr_state_mean_summary[key]['2016']['mean_grand_total_Non_I_and_I_weighted'])
+                    }
+                    that.hdr_income_2015_chart_config.data.labels = labels
+                    that.hdr_income_2016_chart_config.data.labels = labels
+                    that.hdr_income_2015_chart_config.data.datasets.push({
+                        data: data_2015,
+                        backgroundColor:that.colors,
+                        label:'HDR'
+                    })
+                    that.hdr_income_2016_chart_config.data.datasets.push({
+                        data: data_2016,
+                        backgroundColor: that.colors,
+                        label: 'HDR'
+                    })
+                    that.hdr_income_2015_chart.update()
+                    that.hdr_income_2016_chart.update()
+                }).catch(function(error){
+                    console.log(error)
+                })
+
+                axios.post('/analysis_hdr_incomes', {
+                    methods: 'income_state_mean_summary'
+                }).then(function (response) {
+                    that.income_state_mean_summary = response.data.result
+                    var labels = []
+                    var data_2015 = []
+                    var data_2016 = []
+                    for (var key in that.income_state_mean_summary) {
+                        if (!that.income_state_mean_summary.hasOwnProperty(key)) continue;
+                        labels.push(key)
+                        data_2015.push(that.income_state_mean_summary[key]['2015']['grand_total'])
+                        data_2016.push(that.income_state_mean_summary[key]['2016']['grand_total'])
+                    }
+                    that.hdr_income_2015_chart_config.data.labels = labels
+                    that.hdr_income_2016_chart_config.data.labels = labels
+                    that.hdr_income_2015_chart_config.data.datasets.push({
+                        data: data_2015,
+                        backgroundColor: that.colors,
+                        label: 'Research Income'
+                    })
+                    that.hdr_income_2016_chart_config.data.datasets.push({
+                        data: data_2016,
+                        backgroundColor: that.colors,
+                        label: 'Research Income'
+                    })
+                    that.hdr_income_2015_chart.update()
+                    that.hdr_income_2016_chart.update()
+                }).catch(function (error) {
+                    console.log(error)
+                })
+            }
+        }
+
+    })
+
+    var mapVm = window.mapVm = new Vue({
+        el:'#heatmap',
+        data:{
+            map:{},
+            uni_locations:[],
+            uni_enrollments:{}
+        },
+        mounted:function(){
+            var that = this
+            that.init_map()
+        },
+        methods:{
+            init_map:function(){
+                var labels = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                var labelIndex = 0;
+
+                var that = this
+                that.map = new google.maps.Map(document.getElementById('map'), {
+                    center: { lat: -25.584591, lng: 133.937624 },
+                    zoom: 4
+                })
+                //var heatmap = new google.maps.visualization.HeatmapLayer({
+                  //  data: [{ location: latLng, weight:10 }, { location: latLng2, weight: 1 }],
+                    //dissipating: false,
+                 //   map: that.map
+                //});
+                var request_1 = axios.post('/get_uni_location',{
+                    methods:'all'
+                }).then(function(response){
+                    that.uni_locations = response.data.result
+                }).catch(function (error) {
+                        console.log(error)
+                })
+
+                var request_2 = axios.post('/analysis_enrollments', {
+                    methods: 'all_uni'
+                }).then(function (response) {
+                    that.uni_enrollments = response.data.result
+                }).catch(function (error) {
+                    console.log(error)
+                })
+
+                axios.all([request_1,request_2]).then(axios.spread(function (acct, perms) {
+                    var los = {}
+                    that.uni_locations.forEach(function (value) {
+                        var lo = new google.maps.LatLng(value['latlng'][0], value['latlng'][1])
+                        los[value['address']] = lo
+                        var marker = new google.maps.Marker({
+                            position: lo,
+                            map: that.map,
+                            label: labels[labelIndex++ % labels.length]
+                        });
+                        var contentString = '<div id="content">' +
+                            value['address'] + 
+                            '</div>';
+                        var infowindow = new google.maps.InfoWindow({
+                            content: contentString
+                        });
+                        marker.addListener('click',function(){
+                            infowindow.open(that.map, marker);
+                        })
+
+                    })
+                    var data = []
+                    for (var key in that.uni_enrollments){
+                        if (!that.uni_enrollments.hasOwnProperty(key)) continue;
+                        data.push({
+                            location:los[key],
+                            weight: that.uni_enrollments[key]['applications'].slice(-1)[0]
+                        })
+                    }
+                    new google.maps.visualization.HeatmapLayer({
+                        data: data,
+                        dissipating: false,
+                        map: that.map
+                    });
+                }));
+            },
+
+        }
     })
 
 </script>

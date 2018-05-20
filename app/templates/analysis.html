@@ -524,7 +524,11 @@
                             label: labels[labelIndex++ % labels.length]
                         });
                         var contentString = '<div id="content">' +
-                            value['address'] + 
+                            '<h5>'+value['address'] +'</h5>'+ 
+                            '<br>'+
+                            '<p>2017 Applications:' + that.uni_enrollments[value['address']]['applications'].slice(-1)[0] +'</p>'+
+                            '<p>2017 Offers:' + that.uni_enrollments[value['address']]['offers'].slice(-1)[0] + '</p>'+
+                            '<p>2017 Offer rates:' + that.uni_enrollments[value['address']]['offer_rates'].slice(-1)[0] + '</p>' +
                             '</div>';
                         var infowindow = new google.maps.InfoWindow({
                             content: contentString

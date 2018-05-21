@@ -87,6 +87,7 @@ class HDR_completions(db.Model):
     def __repr__(self):
         return f'<HDR Completion for {self.uni_id}>'
 
+
 class Geo_info(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     uni_id = db.Column(db.Integer, db.ForeignKey('universities.id'))

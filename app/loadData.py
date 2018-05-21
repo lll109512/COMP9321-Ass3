@@ -56,7 +56,6 @@ def load_research_data(file_path):
     return formatted_institution, research_data
 
 
-
 def load_HDR_data(file_path):
     HDR_data = []
     for sheet, year in [(3, 2016), (4, 2015)]:
@@ -81,8 +80,9 @@ def load_university_state(file_path):
     available_institution = df.index.tolist()
     formatted_institution = [process_university_name(i) for i in available_institution]
     values = df.iloc[:, 0].to_dict().values()
-    uni_state = dict(zip(formatted_institution,values))
+    uni_state = dict(zip(formatted_institution, values))
     return uni_state
+
 
 def load_enrollments_data(file_path):
     enrollments_data = []
@@ -106,9 +106,10 @@ def load_enrollments_data(file_path):
             enrollments_data.append(temp)
     return enrollments_data
 
-def insert_data(available_institution, research_data, HDR_data, cwur_data, enrollments_data,uni_state):
+
+def insert_data(available_institution, research_data, HDR_data, cwur_data, enrollments_data, uni_state):
     for institution in available_institution:
-        u = Universities(name=institution,state=uni_state[institution])
+        u = Universities(name=institution, state=uni_state[institution])
         db.session.add(u)
     for item in research_data:
         u = Universities.query.filter(Universities.name.contains(process_university_name(item['institution']))).first()
@@ -180,4 +181,3 @@ def insert_data(available_institution, research_data, HDR_data, cwur_data, enrol
         else:
             print(f"missing university:{item['institution']}")
     db.session.commit()
-    

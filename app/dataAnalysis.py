@@ -3,6 +3,7 @@ from app.models import Universities, Enrollments, HDR_completions, Research_inco
 import numpy as np
 import json
 
+
 class Enrollments_Analysis:
     @staticmethod
     def get_enrollment_data_by_name(uniName):
@@ -11,7 +12,7 @@ class Enrollments_Analysis:
         data['offers'] = []
         data['offer_rates'] = []
         labels = []
-        
+
         uni = Universities.query.filter_by(name=uniName).first()
         for record in uni.enrollment.order_by(Enrollments.year).all():
             labels.append(record.year)
@@ -38,7 +39,7 @@ class Enrollments_Analysis:
             data['labels'] = labels
             allData[uni.name] = data
         return allData
-        
+
     @staticmethod
     def enrollment_mean_summary_by_uni():
         record_dict = {}
@@ -69,7 +70,7 @@ class Enrollments_Analysis:
     @staticmethod
     def enrollment_mean_summary_by_state():
         summary = {}
-        for uni,erl in db.session.query(Universities,Enrollments).filter(Universities.id == Enrollments.uni_id).all():
+        for uni, erl in db.session.query(Universities, Enrollments).filter(Universities.id == Enrollments.uni_id).all():
             if uni.state not in summary:
                 summary[uni.state] = {}
             if erl.year not in summary[uni.state]:
@@ -81,7 +82,7 @@ class Enrollments_Analysis:
             summary[uni.state][erl.year]['offers'].append(erl.offers)
             summary[uni.state][erl.year]['offer_rates'].append(erl.offer_rates)
         mean_summary = {}
-        for state,value in summary.items():
+        for state, value in summary.items():
             state_summary = {}
             state_summary['labels'] = []
             state_summary['applications_mean'] = []
@@ -96,13 +97,12 @@ class Enrollments_Analysis:
         return mean_summary
 
 
-
 class HDR_Income_Analysis:
     @staticmethod
     def HDR_state_summary():
         summary = {}
         states = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
-        results = HDR_completions.query.join(Universities).add_columns(Universities.name,Universities.state).all()
+        results = HDR_completions.query.join(Universities).add_columns(Universities.name, Universities.state).all()
         for row in results:
             if row.state not in summary:
                 summary[row.state] = {}
@@ -129,8 +129,8 @@ class HDR_Income_Analysis:
         summary = {}
         states = ['ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA']
         item = ['australian_competitive_grants',
-                'other_public_sector_research_funding', 
-                'industry_and_other_funding', 
+                'other_public_sector_research_funding',
+                'industry_and_other_funding',
                 'cooperative_research_center_funding']
         results = Research_incomes.query.join(Universities).add_columns(
             Universities.name, Universities.state).all()
@@ -144,9 +144,10 @@ class HDR_Income_Analysis:
                 for i in item:
                     summary[row.state][year][i] = []
             summary[row.state][year]['grand_total'].append(row[0].grand_total)
-            for index,i in enumerate(item):
-                summary[row.state][year][i].append(json.loads(getattr(row[0],i))['Sub Total' + (index!=0) * f'.{index}'])
-        
+            for index, i in enumerate(item):
+                summary[row.state][year][i].append(
+                    json.loads(getattr(row[0], i))['Sub Total' + (index != 0) * f'.{index}'])
+
         mean_summary = {}
         for state, value in summary.items():
             if state not in mean_summary:
@@ -159,24 +160,25 @@ class HDR_Income_Analysis:
                     mean_summary[state][year][i] = np.mean(sub_value[i]).round(2)
         return mean_summary
 
-
+    @staticmethod
     def all_uni_HDR():
         summary = {}
-        for uni,hdr in db.session.query(University, HDR_completions).filter(
-            University.id == HDR_completions.uni_id).all():
+        for uni, hdr in db.session.query(Universities, HDR_completions).filter(
+                Universities.id == HDR_completions.uni_id).all():
             if uni.name not in summary:
                 summary[uni.name] = {}
             summary[uni.name][hdr.year] = hdr.grand_total_non_indigenous_and_indigenous_weighted
-        return summarys
-    
+        return summary
+
+    @staticmethod
     def all_uni_Income():
         summary = {}
         item = ['australian_competitive_grants',
                 'other_public_sector_research_funding',
                 'industry_and_other_funding',
                 'cooperative_research_center_funding']
-        for uni, income in db.session.query(University, Research_incomes).filter(
-                University.id == Research_incomes.uni_id).all():
+        for uni, income in db.session.query(Universities, Research_incomes).filter(
+                Universities.id == Research_incomes.uni_id).all():
             if uni.name not in summary:
                 summary[uni.name] = {}
             if income.year not in summary[uni.name]:

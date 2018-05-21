@@ -34,10 +34,10 @@ def get_uni_list():
     data = []
     for uni in unis:
         data.append({
-            'id':uni.id,
-            'label':uni.name
+            'id': uni.id,
+            'label': uni.name
         })
-    return jsonify(result=data),200
+    return jsonify(result=data), 200
 
 
 @app.route('/analysis_hdr_incomes', methods=['POST'])
@@ -52,15 +52,15 @@ def analysis_hdr_incomes():
         data = hia.HDR_state_summary()
     elif args['methods'] == 'income_state_mean_summary':
         data = hia.Income_state_summary()
-    elif agrs['methods'] == 'all_income':
+    elif args['methods'] == 'all_income':
         data = hia.all_uni_Income()
-    elif agrs['methods'] == 'all_hdr':
+    elif args['methods'] == 'all_hdr':
         data = hia.all_uni_HDR()
     elif args['methods'] == 'all_both':
-        data = {'hdr':hia.all_uni_HDR(),'income':hia.all_uni_Income()}
+        data = {'hdr': hia.all_uni_HDR(), 'income': hia.all_uni_Income()}
     else:
         return jsonify(error=1), 400
-    return jsonify(result=data),200
+    return jsonify(result=data), 200
 
 
 @app.route('/get_uni_location', methods=['POST'])
@@ -81,21 +81,20 @@ def get_uni_location():
 @app.route('/analysis_enrollments', methods=['POST'])
 def analysis_enrollments():
     parser = reqparse.RequestParser()
-    parser.add_argument('uni','')
-    parser.add_argument('methods','')
+    parser.add_argument('uni', '')
+    parser.add_argument('methods', '')
     args = parser.parse_args()
     if args['methods'] == 'by_uni_name':
         data = ea.get_enrollment_data_by_name(args['uni'])
         if not data['applications']:
-            return jsonify(error=1),400
+            return jsonify(error=1), 400
     elif args['methods'] == 'all_uni':
         data = ea.get_all_enrollments_data()
     elif args['methods'] == 'state_mean_summary':
         data = ea.enrollment_mean_summary_by_state()
     else:
-        return jsonify(error=1),400
-    return jsonify(result=data),200
-
+        return jsonify(error=1), 400
+    return jsonify(result=data), 200
 
 
 @app.route('/university', methods=['GET'])
@@ -310,7 +309,6 @@ def table_query_filter_builder(query, table, arguments, accepted_attributes_with
         field = getattr(table, accepted_attributes_with_fields[attribute])
         if arguments[attribute]:
             query = query.filter(getattr(field, f'__{arguments[attribute + "Op"]}__')(arguments[attribute]))
-    print(arguments['desc'])
     if arguments['order'] is not None:
         field = getattr(table, accepted_attributes_with_fields[arguments['order']])
         if arguments['desc']:

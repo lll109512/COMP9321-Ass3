@@ -368,12 +368,13 @@
                         if (that.enrollRateOp !== '') parameters.push('offerRateOp=' + that.enrollRateOp);
                     }
                     if (that.enrollOrderBy !== '') {
-                        parameters.push('order=' + that.orderBy);
+                        parameters.push('order=' + that.enrollOrderBy);
                         if (that.enrollOrder === 'asc') {
                             parameters.push('desc=');
                         }
                     }
                     let queryUrl = '/enrollment?' + parameters.join('&');
+                    console.log(queryUrl);
                     that.query(queryUrl, this);
                 },
                 query: function (queryUrl, handle) {

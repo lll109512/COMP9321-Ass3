@@ -492,11 +492,8 @@
                     center: { lat: -25.584591, lng: 133.937624 },
                     zoom: 4
                 })
-                //var heatmap = new google.maps.visualization.HeatmapLayer({
-                  //  data: [{ location: latLng, weight:10 }, { location: latLng2, weight: 1 }],
-                    //dissipating: false,
-                 //   map: that.map
-                //});
+                //that.map.data.loadGeoJson('https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.min.geojson', { idPropertyName: 'STATE' });
+
                 var request_1 = axios.post('/get_uni_location',{
                     methods:'all'
                 }).then(function(response){

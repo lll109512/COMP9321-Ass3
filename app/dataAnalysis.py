@@ -188,3 +188,11 @@ class HDR_Income_Analysis:
                     getattr(income, i))['Sub Total' + (index != 0) * f'.{index}']
             summary[uni.name][income.year]['grand_total'] = income.grand_total
         return summary
+
+class Uni_ranking:
+    def __init__(self):
+        self.default_weight = {'enrollment':1,'HDR':1,'ranks':1,'research_income':1}
+        self.ranking = self.calculate_ranking()
+
+    def calculate_ranking(self):
+        pass

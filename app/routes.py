@@ -25,7 +25,7 @@ def analysis():
 
 @app.route('/mapTest', methods=['GET'])
 def map_test():
-    return render_template('googleMapTest.html')
+    return render_template('googleMapTest.html', style={'raw': 'active', 'analysis': ''})
 
 
 @app.route('/get_uni_list', methods=['POST'])

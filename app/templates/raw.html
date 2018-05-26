@@ -1,5 +1,14 @@
 {% extends 'base.html' %}
 
+{% block style %}
+    <style>
+    .table-details {
+        font-size: 14px;
+        clear: both;
+    }
+    </style>
+{% endblock %}
+
 {% block content %}
     <div id="app">
         <!-- nav -->
@@ -232,7 +241,221 @@
 
         <!-- income -->
         <div v-if="module == 'income'">
-            [[ module ]]
+            <form>
+                <div class="row mt-2">
+                    <div class="col">
+                        <label>University Name</label>
+                        <input-university-name v-model="incomeUni"></input-university-name>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeYearOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Year</label>
+                        <input-field v-model="incomeYear"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeAcgOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Australian Competitive Grants</label>
+                        <input-field v-model="incomeAcg"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeOpsrfOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Other Public Sector</label>
+                        <input-field v-model="incomeOpsrf"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeIaofOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Industry and Others</label>
+                        <input-field v-model="incomeIaof"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeCrcfOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Cooperative Research Center</label>
+                        <input-field v-model="incomeCrcf"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="incomeTotalOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Total</label>
+                        <input-field v-model="incomeTotal"></input-field>
+                    </div>
+                    <div class="col-lg-2">
+                        <label>Ascend</label>
+                        <select v-model="incomeOrder" class="form-control">
+                            <option value="desc">DESC</option>
+                            <option value="asc">ASC</option>
+                        </select>
+                    </div>
+                    <div class="col-lg-4">
+                        <label>Order By</label>
+                        <select v-model="incomeOrderBy" class="form-control">
+                            <option value="total">Total</option>
+                            <option value="year">Year</option>
+                        </select>
+                    </div>
+                </div>
+                <button @click="queryIncome" class="btn btn-primary mt-2" type="button">Search</button>
+            </form>
+            <div class="mt-4 mb-2">[[ status ]]</div>
+            <table class="table" v-if="results != ''">
+                <thead>
+                <tr>
+                    <th>
+                        <button type="button" class="close" @click="toggleAllIncomeDetail()">
+                            <span v-if="incomeAllDetailDisplay == false">+</span>
+                            <span v-if="incomeAllDetailDisplay == true">-</span>
+                        </button>
+                    </th>
+                    <th>University</th>
+                    <th>Australian Competitive Grants</th>
+                    <th>Other Public Sector Research Funding</th>
+                    <th>Industry and Other Funding for Research</th>
+                    <th>Cooperative Research Center Funding</th>
+                    <th>Total</th>
+                    <th>Year</th>
+                </tr>
+                </thead>
+                <tbody>
+                <template v-for="(result, index) in results">
+                    <tr>
+                        <td>
+                            <button type="button" class="close" @click="toggleIncomeDetail(index)">
+                                <span v-if="incomeDetailDisplay[index] == false">+</span>
+                                <span v-if="incomeDetailDisplay[index] == true">-</span>
+                            </button>
+                        </td>
+                        <td>[[ result.university ]]</td>
+                        <td>[[ result.australian_competitive_grants['Sub Total'] ]]</td>
+                        <td>[[ result.other_public_sector_research_funding['Sub Total.1'] ]]</td>
+                        <td>[[ result.industry_and_other_funding['Sub Total.2'] ]]</td>
+                        <td>[[ result.cooperative_research_center_funding['Sub Total.3'] ]]</td>
+                        <td>[[ result.grand_total ]]</td>
+                        <td>[[ result.year ]]</td>
+                    </tr>
+                    <tr v-show="incomeDetailDisplay[index]">
+                        <td colspan="2">
+                            Australian Competitive Grants
+                            <div class="table-details"
+                                 v-show="result.australian_competitive_grants['Commonwealth Schemes'] > 0">
+                                CW Schemes: <br />
+                                [[ result.australian_competitive_grants['Commonwealth Schemes'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.australian_competitive_grants['Non Commonwealth Schemes'] > 0">
+                                Non-CW Schemes: <br />
+                                [[ result.australian_competitive_grants['Non Commonwealth Schemes'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.australian_competitive_grants['Rural R&D'] > 0">
+                                Rural R&D: <br />
+                                [[ result.australian_competitive_grants['Rural R&D'] ]]
+                            </div>
+                        </td>
+                        <td colspan="2">
+                            Other Public Sector Research Funding
+                            <div class="table-details"
+                                 v-show="result.other_public_sector_research_funding['Commonwealth Government'] > 0">
+                                CW Gov: <br />
+                                [[ result.other_public_sector_research_funding['Commonwealth Government'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.other_public_sector_research_funding['Local Government'] > 0">
+                                Local Gov: <br />
+                                [[ result.other_public_sector_research_funding['Local Government'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.other_public_sector_research_funding['State Government'] > 0">
+                                State Gov: <br />
+                                [[ result.other_public_sector_research_funding['State Government'] ]]
+                            </div>
+                        </td>
+                        <td colspan="2">
+                            Industry and Other Funding for Research
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['Australian Funding- Contracts'] > 0">
+                                Australian Funding- Contracts: <br />
+                                [[ result.industry_and_other_funding['Australian Funding- Contracts'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['Australian Funding- Donations Bequests and Foundations'] > 0">
+                                Australian Funding- Donations Bequests and Foundations: <br />
+                                [[ result.industry_and_other_funding['Australian Funding- Donations Bequests and Foundations'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['Australian Funding- Donations Bequests and Foundations'] > 0">
+                                Australian Funding- Donations Bequests and Foundations: <br />
+                                [[ result.industry_and_other_funding['Australian Funding- Donations Bequests and Foundations'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['Australian Funding- Grants'] > 0">
+                                Australian Funding- Grants: <br />
+                                [[ result.industry_and_other_funding['Australian Funding- Grants'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['HDR Fees For Domestic Students'] > 0">
+                                HDR Fees For Domestic Students': <br />
+                                [[ result.industry_and_other_funding['HDR Fees For Domestic Students'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['International A: Competitive, Peer-reviewed research income'] > 0">
+                                International A: Competitive, Peer-reviewed research income: <br />
+                                [[ result.industry_and_other_funding['International A: Competitive, Peer-reviewed research income'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['International B: Other income'] > 0">
+                                International B: Other income: <br />
+                                [[ result.industry_and_other_funding['International B: Other income'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.industry_and_other_funding['International C: HDR fees for international students'] > 0">
+                                International C: HDR fees for international students: <br />
+                                [[ result.industry_and_other_funding['International C: HDR fees for international students'] ]]
+                            </div>
+                        </td>
+                        <td colspan="2">
+                            Cooperative Research Center Funding
+                            <div class="table-details"
+                                 v-show="result.cooperative_research_center_funding['Funding derived from Commonwealth Grants to CRCs'] > 0">
+                                Funding derived from Commonwealth Grants to CRCs: <br />
+                                [[ result.cooperative_research_center_funding['Funding derived from Commonwealth Grants to CRCs'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.cooperative_research_center_funding['Funding derived from non-university participants in CRCs'] > 0">
+                                Funding derived from non-university participants in CRCs: <br />
+                                [[ result.cooperative_research_center_funding['Funding derived from non-university participants in CRCs'] ]]
+                            </div>
+                            <div class="table-details"
+                                 v-show="result.cooperative_research_center_funding['Funding derived from third parties contributing to CRCs'] > 0">
+                                Funding derived from third parties contributing to CRCs: <br />
+                                [[ result.cooperative_research_center_funding['Funding derived from third parties contributing to CRCs'] ]]
+                            </div>
+                        </td>
+                    </tr>
+                </template>
+                </tbody>
+            </table>
         </div>
 
         <!-- completion -->
@@ -279,10 +502,45 @@
             data: {
                 module: 'university',
                 uniName: '',
-                rankUni: '', rankYearOp: '', rankYear: '', rankWorldOp: '', rankWorld: '',
-                rankNationalOp: '', rankNational: '', rankScoreOp: '', rankScore: '', rankOrder: '', rankOrderBy: '',
-                enrollUni: '', enrollYearOp: '', enrollYear: '', enrollApplicationOp: '', enrollApplication: '',
-                enrollOfferOp: '', enrollOffer: '', enrollRateOp: '', enrollRate: '', enrollOrder: '', enrollOrderBy: '',
+                rankUni: '',
+                rankYearOp: '',
+                rankYear: '',
+                rankWorldOp: '',
+                rankWorld: '',
+                rankNationalOp: '',
+                rankNational: '',
+                rankScoreOp: '',
+                rankScore: '',
+                rankOrder: '',
+                rankOrderBy: '',
+                enrollUni: '',
+                enrollYearOp: '',
+                enrollYear: '',
+                enrollApplicationOp: '',
+                enrollApplication: '',
+                enrollOfferOp: '',
+                enrollOffer: '',
+                enrollRateOp: '',
+                enrollRate: '',
+                enrollOrder: '',
+                enrollOrderBy: '',
+                incomeUni: '',
+                incomeYearOp: '',
+                incomeYear: '',
+                incomeAcgOp: '',
+                incomeAcg: '',
+                incomeOpsrfOp: '',
+                incomeOpsrf: '',
+                incomeIaofOp: '',
+                incomeIaof: '',
+                incomeCrcfOp: '',
+                incomeCrcf: '',
+                incomeTotalOp: '',
+                incomeTotal: '',
+                incomeOrder: '',
+                incomeOrderBy: '',
+                incomeDetailDisplay: [],
+                incomeAllDetailDisplay: false,
                 results: '',
                 status: '',
             },
@@ -294,100 +552,130 @@
                     this.status = '';
                 },
                 queryUniversity: function () {
-                    let that = this;
-                    that.status = 'Query has been send.';
-                    axios.get('/university?uni=' + this.uniName)
-                        .then(function (response) {
-                            that.status = 'Queried successfully.';
-                            that.results = response.data.result;
-                        })
-                        .catch(function (error) {
-                            that.status = 'Query failed.';
-                            console.log(error);
-                        });
+                    this.status = 'Query has been send.';
+                    this.query('/university?uni=' + this.uniName, this);
                 },
                 queryRank: function () {
-                    let that = this;
-                    that.status = 'Query has been send.';
+                    this.status = 'Query has been send.';
                     let parameters = [];
-                    if (that.rankUni !== '') parameters.push('uni=' + that.rankUni);
-                    if (that.rankWorld !== '') {
-                        parameters.push('worldRank=' + that.rankWorld);
-                        if (that.rankWorldOp !== '') parameters.push('worldRankOp=' + that.rankWorldOp);
+                    if (this.rankUni !== '') parameters.push('uni=' + this.rankUni);
+                    if (this.rankWorld !== '') {
+                        parameters.push('worldRank=' + this.rankWorld);
+                        if (this.rankWorldOp !== '') parameters.push('worldRankOp=' + this.rankWorldOp);
                     }
-                    if (that.rankNational !== '') {
-                        parameters.push('nationalRank=' + that.rankNational);
-                        if (that.rankNationalOp !== '') parameters.push('nationalRankOp=' + that.rankNationalOp);
+                    if (this.rankNational !== '') {
+                        parameters.push('nationalRank=' + this.rankNational);
+                        if (this.rankNationalOp !== '') parameters.push('nationalRankOp=' + this.rankNationalOp);
                     }
-                    if (that.rankScore !== '') {
-                        parameters.push('score=' + that.rankScore);
-                        if (that.rankScoreOp !== '') parameters.push('scoreOp=' + that.rankScoreOp);
+                    if (this.rankScore !== '') {
+                        parameters.push('score=' + this.rankScore);
+                        if (this.rankScoreOp !== '') parameters.push('scoreOp=' + this.rankScoreOp);
                     }
-                    if (that.rankYear !== '') {
-                        parameters.push('year=' + that.rankYear);
-                        if (that.rankYearOp !== '') parameters.push('yearOp=' + that.rankYearOp);
+                    if (this.rankYear !== '') {
+                        parameters.push('year=' + this.rankYear);
+                        if (this.rankYearOp !== '') parameters.push('yearOp=' + this.rankYearOp);
                     }
-                    if (that.rankOrderBy !== '') {
-                        parameters.push('order=' + that.rankOrderBy);
-                        if (that.rankOrder === 'desc') {
+                    if (this.rankOrderBy !== '') {
+                        parameters.push('order=' + this.rankOrderBy);
+                        if (this.rankOrder === 'desc') {
                             parameters.push('desc=1');
                         }
                     }
-                    let queryUrl = '/rank?' + parameters.join('&');
-                    console.log(queryUrl);
-                    axios.get(queryUrl)
-                        .then(function (response) {
-                            that.status = 'Queried successfully.';
-                            that.results = response.data.result;
-                            console.log(response.data.result);
-                        })
-                        .catch(function (error) {
-                            that.status = 'Query failed.';
-                            console.log(error);
-                        });
+                    this.query('/rank?' + parameters.join('&'), this);
                 },
                 queryEnrollment: function () {
-                    let that = this;
-                    that.status = 'Query has been send.';
+                    this.status = 'Query has been send.';
                     let parameters = [];
-                    if (that.enrollUni !== '') parameters.push('uni=' + that.enrollUni);
-                    if (that.enrollYear !== '') {
-                        parameters.push('year=' + that.enrollYear);
-                        if (that.enrollYearOp !== '') parameters.push('yearOp=' + that.enrollYearOp);
+                    if (this.enrollUni !== '') parameters.push('uni=' + this.enrollUni);
+                    if (this.enrollYear !== '') {
+                        parameters.push('year=' + this.enrollYear);
+                        if (this.enrollYearOp !== '') parameters.push('yearOp=' + this.enrollYearOp);
                     }
-                    if (that.enrollApplication !== '') {
-                        parameters.push('application=' + that.enrollApplication);
-                        if (that.enrollApplicationOp !== '') parameters.push('applicationOp=' + that.enrollApplicationOp);
+                    if (this.enrollApplication !== '') {
+                        parameters.push('application=' + this.enrollApplication);
+                        if (this.enrollApplicationOp !== '') parameters.push('applicationOp=' + this.enrollApplicationOp);
                     }
-                    if (that.enrollOffer !== '') {
-                        parameters.push('offer=' + that.enrollOffer);
-                        if (that.enrollOfferOp !== '') parameters.push('offerOp=' + that.enrollOfferOp);
+                    if (this.enrollOffer !== '') {
+                        parameters.push('offer=' + this.enrollOffer);
+                        if (this.enrollOfferOp !== '') parameters.push('offerOp=' + this.enrollOfferOp);
                     }
-                    if (that.enrollRate !== '') {
-                        parameters.push('offerRate=' + that.enrollRate);
-                        if (that.enrollRateOp !== '') parameters.push('offerRateOp=' + that.enrollRateOp);
+                    if (this.enrollRate !== '') {
+                        parameters.push('offerRate=' + this.enrollRate);
+                        if (this.enrollRateOp !== '') parameters.push('offerRateOp=' + this.enrollRateOp);
                     }
-                    if (that.enrollOrderBy !== '') {
-                        parameters.push('order=' + that.enrollOrderBy);
-                        if (that.enrollOrder === 'asc') {
+                    if (this.enrollOrderBy !== '') {
+                        parameters.push('order=' + this.enrollOrderBy);
+                        if (this.enrollOrder === 'asc') {
                             parameters.push('desc=');
                         }
                     }
-                    let queryUrl = '/enrollment?' + parameters.join('&');
-                    console.log(queryUrl);
-                    that.query(queryUrl, this);
+                    this.query('/enrollment?' + parameters.join('&'), this);
                 },
-                query: function (queryUrl, handle) {
+                queryIncome: function () {
+                    this.status = 'Query has been send.';
+                    let parameters = [];
+                    if (this.incomeUni !== '') parameters.push('uni=' + this.incomeUni);
+                    if (this.incomeYear !== '') {
+                        parameters.push('year=' + this.incomeYear);
+                        if (this.incomeYearOp !== '') parameters.push('yearOp=' + this.incomeYearOp);
+                    }
+                    if (this.incomeAcg !== '') {
+                        parameters.push('acg=' + this.incomeAcg);
+                        if (this.incomeYearOp !== '') parameters.push('acgOp=' + this.incomeAcgOp);
+                    }
+                    if (this.incomeOpsrf !== '') {
+                        parameters.push('opsrf=' + this.incomeOpsrf);
+                        if (this.incomeOpsrfOp !== '') parameters.push('opsrfOp=' + this.incomeOpsrfOp);
+                    }
+                    if (this.incomeIaof !== '') {
+                        parameters.push('iaof=' + this.incomeIaof);
+                        if (this.incomeIaofOp !== '') parameters.push('iaofOp=' + this.incomeIaofOp);
+                    }
+                    if (this.incomeCrcf !== '') {
+                        parameters.push('crcf=' + this.incomeCrcf);
+                        if (this.incomeCrcfOp !== '') parameters.push('crcfOp=' + this.incomeCrcfOp);
+                    }
+                    if (this.incomeTotal !== '') {
+                        parameters.push('total=' + this.incomeTotal);
+                        if (this.incomeTotalOp !== '') parameters.push('totalOp=' + this.incomeTotalOp);
+                    }
+                    let that = this;
+                    this.query('/income?' + parameters.join('&'), this, function () {
+                        that.incomeDetailDisplay = Array(that.results.length).fill(false);
+                    });
+                },
+                query: function (queryUrl, handle, additional = false) {
+                    console.log(queryUrl);
                     axios.get(queryUrl)
                         .then(function (response) {
                             handle.status = 'Queried successfully.';
                             handle.results = response.data.result;
-                            console.log(response.data.result);
+                            if (additional) {
+                                additional();
+                            }
                         })
                         .catch(function (error) {
                             handle.status = 'Query failed.';
                             console.log(error);
                         });
+                },
+                toggleIncomeDetail: function (index) {
+                    if (this.incomeDetailDisplay[index] === false) {
+                        Vue.set(this.incomeDetailDisplay, index, true);
+                    }
+                    else {
+                        Vue.set(this.incomeDetailDisplay, index, false);
+                    }
+                },
+                toggleAllIncomeDetail: function () {
+                    if (this.incomeAllDetailDisplay === false) {
+                        this.incomeDetailDisplay.fill(true);
+                        this.incomeAllDetailDisplay = true;
+                    }
+                    else {
+                        this.incomeDetailDisplay.fill(false);
+                        this.incomeAllDetailDisplay = false;
+                    }
                 }
             }
         });

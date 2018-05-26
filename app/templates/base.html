@@ -44,6 +44,9 @@
         <a class="navbar-brand" href="#">CSDAU</a>
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav mr-auto">
+                <li id="raw-nav" class="nav-item {{ style['overall'] }}">
+                    <a class="nav-link" href="{{ url_for('overall') }}">Mash Up</a>
+                </li>
                 <li id="raw-nav" class="nav-item {{ style['raw'] }}">
                     <a class="nav-link" href="{{ url_for('raw_data') }}">Raw Data</a>
                 </li>

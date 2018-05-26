@@ -460,7 +460,93 @@
 
         <!-- completion -->
         <div v-if="module == 'completion'">
-            [[ module ]]
+            <form>
+                <div class="row mt-2">
+                    <div class="col">
+                        <label>University Name</label>
+                        <input-university-name v-model="completionUni"></input-university-name>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="completionYearOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Year</label>
+                        <input-field v-model="completionYear"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="completionUnweightedOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Grand Total (uw)</label>
+                        <input-field v-model="completionUnweighted"></input-field>
+                    </div>
+                    <div class="col-2">
+                        <label>Operator</label>
+                        <select-operator v-model="completionWeightedOp"></select-operator>
+                    </div>
+                    <div class="col-4">
+                        <label>Grand Total (w)</label>
+                        <input-field v-model="completionWeighted"></input-field>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">p.s. UW = unweighted, W = weighted, HC = High Cost, LC = Low Cost</div>
+                </div>
+                <button @click="queryCompletion" class="btn btn-primary mt-2" type="button">Search</button>
+            </form>
+            <div class="mt-4 mb-2">[[ status ]]</div>
+            <table class="table table-striped" v-if="results != ''" style="text-align: center;">
+                <thead>
+                <tr>
+                    <th rowspan="3" valign="center">University</th>
+                    <th rowspan="3" valign="center">Year</th>
+                    <th colspan="5" valign="center">Non-Indigenous</th>
+                    <th colspan="5" valign="center">Indigenous</th>
+                    <th rowspan="3" valign="center">Grand Total (UW)</th>
+                    <th rowspan="3" valign="center">Grand Total (W)</th>
+                </tr>
+                <tr>
+                    <th colspan="2">Research Masters</th>
+                    <th colspan="2">Research Doctorate</th>
+                    <th rowspan="2">Total (UW)</th>
+                    <th colspan="2">Research Masters</th>
+                    <th colspan="2">Research Doctorate</th>
+                    <th rowspan="2">Total (W)</th>
+                </tr>
+                <tr>
+                    <th>HC</th>
+                    <th>LC</th>
+                    <th>HC</th>
+                    <th>LC</th>
+                    <th>HC</th>
+                    <th>LC</th>
+                    <th>HC</th>
+                    <th>LC</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="result in results">
+                    <td>[[ result.university ]]</td>
+                    <td>[[ result.year ]]</td>
+                    <td>[[ result.research_master_hc_non_indigenous ]]</td>
+                    <td>[[ result.research_master_lc_non_indigenous ]]</td>
+                    <td>[[ result.research_doctorate_hc_non_indigenous ]]</td>
+                    <td>[[ result.research_doctorate_lc_non_indigenous ]]</td>
+                    <td>[[ result.total_non_indigenous_unweighted ]]</td>
+                    <td>[[ result.research_master_hc_indigenous ]]</td>
+                    <td>[[ result.research_master_lc_indigenous ]]</td>
+                    <td>[[ result.research_doctorate_hc_indigenous ]]</td>
+                    <td>[[ result.research_doctorate_lc_indigenous ]]</td>
+                    <td>[[ result.total_indigenou_unweighted ]]</td>
+                    <td>[[ result.grand_total_non_indigenous_and_indigenous_unweighted ]]</td>
+                    <td>[[ result.grand_total_non_indigenous_and_indigenous_weighted ]]</td>
+                </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
@@ -541,6 +627,13 @@
                 incomeOrderBy: '',
                 incomeDetailDisplay: [],
                 incomeAllDetailDisplay: false,
+                completionUni: '',
+                completionYearOp: '',
+                completionYear: '',
+                completionUnweightedOp: '',
+                completionUnweighted: '',
+                completionWeightedOp: '',
+                completionWeighted: '',
                 results: '',
                 status: '',
             },
@@ -643,6 +736,24 @@
                     this.query('/income?' + parameters.join('&'), this, function () {
                         that.incomeDetailDisplay = Array(that.results.length).fill(false);
                     });
+                },
+                queryCompletion: function() {
+                    this.status = 'Query has been send.';
+                    let parameters = [];
+                    if (this.completionUni !== '') parameters.push('uni=' + this.completionUni);
+                    if (this.completionYear !== '') {
+                        parameters.push('year=' + this.completionYear);
+                        if (this.completionYearOp !== '') parameters.push('yearOp=' + this.completionYearOp);
+                    }
+                    if (this.completionUnweighted !== '') {
+                        parameters.push('totalUnweighted=' + this.completionUnweighted);
+                        if (this.completionUnweightedOp !== '') parameters.push('totalUnweightedOp=' + this.completionUnweightedOp);
+                    }
+                    if (this.completionWeighted !== '') {
+                        parameters.push('totalWeighted=' + this.completionWeighted);
+                        if (this.completionWeightedOp !== '') parameters.push('totalWeightedOp=' + this.completionWeightedOp);
+                    }
+                    this.query('/completion?' + parameters.join('&'), this);
                 },
                 query: function (queryUrl, handle, additional = false) {
                     console.log(queryUrl);

@@ -58,7 +58,7 @@ def hdr_incomes_analysis():
     return jsonify(result=data), 200
 
 
-@app.route('/uni_locations', methods=['POST'])
+@app.route('/universities/uni_locations', methods=['POST'])
 def get_uni_locations():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')

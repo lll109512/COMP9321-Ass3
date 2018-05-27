@@ -599,7 +599,7 @@
                 })
                 //that.map.data.loadGeoJson('https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.min.geojson', { idPropertyName: 'STATE' });
 
-                var request_1 = axios.post('/uni_locations',{
+                var request_1 = axios.post('/universities/uni_locations',{
                     methods:'all'
                 }).then(function(response){
                     that.uni_locations = response.data.result

@@ -555,9 +555,9 @@
 {% block script %}
     <script>
         Vue.component('input-university-name', {
-            props: ['universityName'],
+            props: ['value'],
             template: `
-            <input :value="universityName" @input="$emit('input', $event.target.value)" class="form-control"
+            <input :value="value" @input="$emit('input', $event.target.value)" class="form-control"
             placeholder="Type any part of a university name, or just keep it blank">
             `
         });

@@ -173,9 +173,36 @@
                     </td>
                 </tr>
                 <!-- completion row -->
-                <tr class="table-secondary" v-show="displayStatus[name]['completion']">
+                <tr v-show="Object.keys(uni.completion).length > 0 && displayStatus[name]['completion']">
                     <td colspan="5" class="detail-cell">
-                        [[ name ]] completion
+                        <table class="detail-table table-borderless">
+                            <tr>
+                                <th>COMPLETION</th>
+                                <td><ni></ni>-<rm></rm>-<hc></hc></td>
+                                <td><ni></ni>-<rm></rm>-<lc></lc></td>
+                                <td><ni></ni>-<rd></rd>-<hc></hc></td>
+                                <td><ni></ni>-<rd></rd>-<lc></lc></td>
+                                <td>NI Total</td>
+                                <td><IG></IG>-<rm></rm>-<hc></hc></td>
+                                <td><IG></IG>-<rm></rm>-<lc></lc></td>
+                                <td><IG></IG>-<rd></rd>-<hc></hc></td>
+                                <td><IG></IG>-<rd></rd>-<lc></lc></td>
+                                <td>IG Total</td>
+                            </tr>
+                            <tr v-for="(data, year) in uni.completion">
+                                <td><span class="year">[[ year ]]</span></td>
+                                <td>[[ data.research_master_hc_non_indigenous ]]</td>
+                                <td>[[ data.research_master_lc_non_indigenous ]]</td>
+                                <td>[[ data.research_doctorate_hc_non_indigenous ]]</td>
+                                <td>[[ data.research_doctorate_lc_non_indigenous ]]</td>
+                                <td>[[ data.total_non_indigenous_unweighted ]]</td>
+                                <td>[[ data.research_master_hc_indigenous ]]</td>
+                                <td>[[ data.research_master_lc_indigenous ]]</td>
+                                <td>[[ data.research_doctorate_hc_indigenous ]]</td>
+                                <td>[[ data.research_doctorate_lc_indigenous ]]</td>
+                                <td>[[ data.total_indigenou_unweighted ]]</td>
+                            </tr>
+                        </table>
                     </td>
                 </tr>
             </template>
@@ -188,13 +215,38 @@
     <script>
         $(function () {
             $('[data-toggle="tooltip"]').tooltip()
-        })
+        });
+
         Array.prototype.first = function () {
             return this[0];
         };
         Array.prototype.last = function () {
             return this[this.length - 1];
         };
+
+        Vue.component('ni', {
+            template: '<span title="Non-Indigenous">NI</span>'
+        });
+
+        Vue.component('ig', {
+            template: '<span title="Indigenous">I</span>'
+        });
+
+        Vue.component('rm', {
+            template: '<span title="Research Masters">RM</span>'
+        });
+
+        Vue.component('rd', {
+            template: '<span title="Research Doctorate">RD</span>'
+        });
+
+        Vue.component('hc', {
+            template: '<span title="High Cost">HC</span>'
+        });
+
+        Vue.component('lc', {
+            template: '<span title="Low Cost">LC</span>'
+        });
 
         Vue.component('ellipsis', {
             template: '<div style="width: 100%; text-align: center">...</div>'

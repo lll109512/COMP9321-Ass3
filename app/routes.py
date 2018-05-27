@@ -23,12 +23,7 @@ def analysis():
     return render_template('analysis.html', style={'raw': '', 'analysis': 'active'})
 
 
-@app.route('/mapTest', methods=['GET'])
-def map_test():
-    return render_template('googleMapTest.html', style={'raw': 'active', 'analysis': ''})
-
-
-@app.route('/get_uni_list', methods=['POST'])
+@app.route('/uni_lists', methods=['POST'])
 def get_uni_list():
     unis = Universities.query.all()
     data = []
@@ -40,8 +35,8 @@ def get_uni_list():
     return jsonify(result=data), 200
 
 
-@app.route('/analysis_hdr_incomes', methods=['POST'])
-def analysis_hdr_incomes():
+@app.route('/hdr_incomes_analysis', methods=['POST'])
+def hdr_incomes_analysis():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
     parser.add_argument('methods', '')
@@ -63,8 +58,8 @@ def analysis_hdr_incomes():
     return jsonify(result=data), 200
 
 
-@app.route('/get_uni_location', methods=['POST'])
-def get_uni_location():
+@app.route('/uni_locations', methods=['POST'])
+def get_uni_locations():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
     parser.add_argument('methods', '')
@@ -78,8 +73,8 @@ def get_uni_location():
     return jsonify(result=data), 200
 
 
-@app.route('/analysis_enrollments', methods=['POST'])
-def analysis_enrollments():
+@app.route('/enrollments_analysis', methods=['POST'])
+def enrollments_analysis():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
     parser.add_argument('methods', '')

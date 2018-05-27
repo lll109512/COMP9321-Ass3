@@ -84,6 +84,7 @@
     <div class="card" id='heatmap'>
         <div class="card-header text-center">
             <h5>Information heat map</h5>
+            Shown by application number in 2017
         </div>
         <div class="card-body" style="height:700px">
             <div id="map" style="width: 100%; height: 100%"></div>
@@ -101,6 +102,7 @@
             current_tab:0,
             loaded_summary: {},
             search_options:[],
+            uni_char_inited:0,
             colors:[
                 "rgb(54, 162, 235)",
                 "rgb(75, 192, 192)",
@@ -127,7 +129,23 @@
                     title: {
                         display: true,
                         text: 'Application'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number'
+                            }
+                        }]
+                    },
                 }
             },
             eoc_config: {
@@ -140,7 +158,23 @@
                     title: {
                         display: true,
                         text: 'Offer'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number'
+                            }
+                        }]
+                    },
                 }
             },
             eorc_config: {
@@ -153,7 +187,23 @@
                     title: {
                         display: true,
                         text: 'Offer rate'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Rate'
+                            }
+                        }]
+                    },
                 }
             },
             uni_application_config: {
@@ -166,7 +216,23 @@
                     title: {
                         display: true,
                         text: 'Application'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number'
+                            }
+                        }]
+                    },
                 }
             },
             uni_offer_config: {
@@ -179,7 +245,23 @@
                     title: {
                         display: true,
                         text: 'Offer'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Number'
+                            }
+                        }]
+                    },
                 }
             },
             uni_offer_rate_config: {
@@ -192,7 +274,23 @@
                     title: {
                         display: true,
                         text: 'Offer rate'
-                    }
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Year'
+                            }
+                        }],
+                        yAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Rate'
+                            }
+                        }]
+                    },
                 }
             },
             ready_to_add_uni:'',
@@ -204,17 +302,21 @@
             that.eac_line_chart = new Chart($('#state_application_chart'), that.eac_config);
             that.eoc_line_chart = new Chart($('#state_offer_chart'), that.eoc_config);
             that.eorc_line_chart = new Chart($('#state_offer_rate_chart'), that.eorc_config);
-            that.uni_application_line_chart = new Chart($('#uni_application_chart'), that.uni_application_config);
-            that.uni_offer_line_chart = new Chart($('#uni_offer_chart'), that.uni_offer_config);
-            that.uni_offer_rate_line_chart = new Chart($('#uni_offer_rate_chart'), that.uni_offer_rate_config);
             that.plot_enrollment_state_summary()
 
 
         },
         methods: {
+            init_uni_chart: function(){
+                var that = this
+                that.uni_application_line_chart = new Chart($('#uni_application_chart'), that.uni_application_config);
+                that.uni_offer_line_chart = new Chart($('#uni_offer_chart'), that.uni_offer_config);
+                that.uni_offer_rate_line_chart = new Chart($('#uni_offer_rate_chart'), that.uni_offer_rate_config);
+                that.uni_chart_inited = 1
+            },
             plot_enrollment_state_summary: function () {
                 var that = this
-                axios.post('/analysis_enrollments', {
+                axios.post('/enrollments_analysis', {
                     methods:'state_mean_summary'
                 }).then(function (response) {
                     that.loaded_summary = response.data.result
@@ -256,6 +358,9 @@
             },
             add_plot_uni:function(){
                 var that = this
+                if(!that.uni_chart_inited){
+                    that.init_uni_chart()
+                }
                 if(that.added_uni.includes(that.ready_to_add_uni.label)){
                     new Noty({
                         theme: 'sunset',
@@ -265,7 +370,7 @@
                     }).show()
                     return 
                 }
-                axios.post('/analysis_enrollments',{
+                axios.post('/enrollments_analysis',{
                     methods: 'by_uni_name',
                     uni: that.ready_to_add_uni.label
                 }).then(function(response){
@@ -311,7 +416,7 @@
                 this.search(loading, search, this);
             },
             search: _.debounce((loading, search, vm) => {
-                axios.post('/get_uni_list', {}).then(function (response) {
+                axios.post('/uni_lists', {}).then(function (response) {
                     vm.search_options = response.data.result
                     loading(false);}).catch(function (error){
                         console.log(error)
@@ -405,7 +510,7 @@
         methods:{
             load_plot_hdr:function(){
                 var that = this
-                axios.post('/analysis_hdr_incomes',{
+                axios.post('/hdr_incomes_analysis',{
                     methods:'hdr_state_mean_summary'
                 }).then(function(response){
                     that.hdr_state_mean_summary = response.data.result
@@ -436,7 +541,7 @@
                     console.log(error)
                 })
 
-                axios.post('/analysis_hdr_incomes', {
+                axios.post('/hdr_incomes_analysis', {
                     methods: 'income_state_mean_summary'
                 }).then(function (response) {
                     that.income_state_mean_summary = response.data.result
@@ -494,7 +599,7 @@
                 })
                 //that.map.data.loadGeoJson('https://raw.githubusercontent.com/rowanhogan/australian-states/master/states.min.geojson', { idPropertyName: 'STATE' });
 
-                var request_1 = axios.post('/get_uni_location',{
+                var request_1 = axios.post('/uni_locations',{
                     methods:'all'
                 }).then(function(response){
                     that.uni_locations = response.data.result
@@ -502,7 +607,7 @@
                         console.log(error)
                 })
 
-                var request_2 = axios.post('/analysis_enrollments', {
+                var request_2 = axios.post('/enrollments_analysis', {
                     methods: 'all_uni'
                 }).then(function (response) {
                     that.uni_enrollments = response.data.result

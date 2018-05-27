@@ -262,7 +262,7 @@ def income():
     return jsonify(result=results)
 
 
-@app.route('/mashup')
+@app.route('/mashup', methods=['GET'])
 def mashup():
     final = {}
     delete_fields = ['uni_id', 'year', 'create_date', '_sa_instance_state']

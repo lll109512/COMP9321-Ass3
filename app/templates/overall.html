@@ -1,10 +1,180 @@
 {% extends 'base.html' %}
 
 {% block style %}
+    <style>
+        .data-block {
+            clear: both;
+        }
+
+        .year {
+            font-weight: bold;
+            margin-right: 4px;
+            padding: 3px;
+            background: #e6e6e6;
+        }
+
+        .unweighted {
+            margin-right: 2px;
+            padding: 3px;
+            background: aquamarine;
+        }
+
+        .weighted {
+            margin-right: 2px;
+            padding: 3px;
+            background: darksalmon;
+        }
+    </style>
 {% endblock %}
 
 {% block content %}
+    <div id="app">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>University</th>
+                <th>Rank</th>
+                <th>Enrollment</th>
+                <th>Income</th>
+                <th>Completion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="(uni, name) in displayed">
+                <td>[[ name ]]</td>
+                <td>
+                    <div v-if="objectLength(uni.rank) > 3">
+                        <year-rank :year="firstElementKey(uni.rank)" :data="firstElement(uni.rank)"></year-rank>
+                        ...
+                        <year-rank :year="lastElementKey(uni.rank)" :data="firstElement(uni.rank)"></year-rank>
+                    </div>
+                    <div v-else v-for="(rank, year) in uni.rank">
+                        <year-rank :year="year" :data="rank"></year-rank>
+                    </div>
+                </td>
+                <td>
+                    <div v-if="objectLength(uni.enrollment) > 3">
+                        <year-enrollment
+                                :year="firstElementKey(uni.enrollment)" :data="firstElement(uni.enrollment)">
+                        </year-enrollment>
+                        ...
+                        <year-enrollment
+                                :year="lastElementKey(uni.enrollment)" :data="firstElement(uni.enrollment)">
+                        </year-enrollment>
+                    </div>
+                    <div v-else v-for="(enrollment, year) in uni.enrollment">
+                        <year-enrollment :year="year" :data="enrollment"></year-enrollment>
+                    </div>
+                </td>
+                <td>
+                    <div v-if="objectLength(uni.income) > 3">
+                        <year-simple-income
+                                :year="firstElementKey(uni.income)" :data="firstElement(uni.income)">
+                        </year-simple-income>
+                        ...
+                        <year-simple-income
+                                :year="lastElementKey(uni.income)" :data="firstElement(uni.income)">
+                        </year-simple-income>
+                    </div>
+                    <div v-else v-for="(income, year) in uni.income">
+                        <year-simple-income :year="year" :data="income"></year-simple-income>
+                    </div>
+                </td>
+                <td>
+                    <div v-if="objectLength(uni.completion) > 3">
+                        <year-simple-completion
+                                :year="firstElementKey(uni.completion)" :data="firstElement(uni.completion)">
+                        </year-simple-completion>
+                        ...
+                        <year-simple-completion
+                                :year="lastElementKey(uni.completion)" :data="firstElement(uni.completion)">
+                        </year-simple-completion>
+                    </div>
+                    <div v-else v-for="(completion, year) in uni.completion">
+                        <year-simple-completion :year="year" :data="completion"></year-simple-completion>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
 {% endblock %}
 
 {% block script %}
+    <script>
+        Array.prototype.first = function () {
+            return this[0];
+        };
+        Array.prototype.last = function () {
+            return this[this.length - 1];
+        };
+
+        Vue.component('year-rank', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> ' +
+            '[[ data["national_rank"] ]]([[ data["world_rank"] ]])</div>'
+        });
+
+        Vue.component('year-enrollment', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> ' +
+            '[[ data["offers"] ]] / [[ data["applications"] ]]' +
+            ' ([[ Math.round(data["offer_rates"] * 100) ]]%)</div>'
+        });
+
+        Vue.component('year-simple-income', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> [[ data["grand_total"] ]] </div>'
+        });
+
+        Vue.component('year-simple-completion', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: `<div class="data-block"><span class="year">[[ year ]]</span>
+<template v-if='data["grand_total_non_indigenous_and_indigenous_unweighted"] != "np"'>
+<span class="unweighted">UW</span>[[ data["grand_total_non_indigenous_and_indigenous_unweighted"] ]]
+</template>
+<span class="weighted">W</span>[[ data["grand_total_non_indigenous_and_indigenous_weighted"] ]]</div>`
+        });
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                results: [],
+                displayed: []
+            },
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                let that = this;
+                axios.get("/mashup")
+                    .then(function (response) {
+                        that.results = response.data.result;
+                        that.displayed = _.clone(that.results);
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            methods: {
+                firstElementKey: function (obj) {
+                    return Object.keys(obj).first();
+                },
+                firstElement: function (obj) {
+                    return obj[Object.keys(obj).first()];
+                },
+                lastElementKey: function (obj) {
+                    return Object.keys(obj).last();
+                },
+                lastElement: function (obj) {
+                    return obj[Object.keys(obj).last()];
+                },
+                objectLength: function (obj) {
+                    return Object.keys(obj).length;
+                }
+            }
+        });
+    </script>
 {% endblock %}

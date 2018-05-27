@@ -1,0 +1,297 @@
+{% extends 'base.html' %}
+
+{% block style %}
+    <style>
+        .data-block {
+            clear: both;
+        }
+
+        .year {
+            font-weight: bold;
+            margin-right: 4px;
+            padding: 3px;
+            background: #e6e6e6;
+        }
+
+        .unweighted {
+            margin-right: 2px;
+            padding: 3px;
+            background: aquamarine;
+        }
+
+        .weighted {
+            margin-right: 2px;
+            padding: 3px;
+            background: darksalmon;
+        }
+
+        .detail-table {
+            border: 0;
+            width: 100%
+        }
+
+        .detail-cell {
+            padding-left: 100px
+        }
+
+        .vertical {
+            transform: rotate(-90deg);
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div id="app">
+        <table class="table table-sm">
+            <thead>
+            <tr>
+                <th data-toggle="tooltip" data-placement="bottom"
+                    title="Press one university name to toggle all its details">University
+                </th>
+                <th data-toggle="tooltip" data-placement="bottom"
+                    title="Press one university rank abstract to toggle its rank detail">Rank
+                </th>
+                <th data-toggle="tooltip" data-placement="bottom"
+                    title="Press one university enrollment abstract to toggle its enrollment detail">Enrollment
+                </th>
+                <th data-toggle="tooltip" data-placement="bottom"
+                    title="Press one university income abstract to toggle its income detail">Income
+                </th>
+                <th data-toggle="tooltip" data-placement="bottom"
+                    title="Press one university completion abstract to toggle its completion detail">Completion
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <template v-for="(uni, name) in displayed">
+                <!-- abstract row -->
+                <tr>
+                    <td @click="toggleDetail(name, 'all')">[[ name ]]</td>
+                    <td @click="toggleDetail(name, 'rank')">
+                        <div v-if="objectLength(uni.rank) > 3">
+                            <year-rank :year="firstElementKey(uni.rank)" :data="firstElement(uni.rank)"></year-rank>
+                            ...
+                            <year-rank :year="lastElementKey(uni.rank)" :data="firstElement(uni.rank)"></year-rank>
+                        </div>
+                        <div v-else v-for="(rank, year) in uni.rank">
+                            <year-rank :year="year" :data="rank"></year-rank>
+                        </div>
+                    </td>
+                    <td @click="toggleDetail(name, 'enrollment')">
+                        <div v-if="objectLength(uni.enrollment) > 3 && !displayStatus[name]['enrollment']">
+                            <year-enrollment
+                                    :year="firstElementKey(uni.enrollment)" :data="firstElement(uni.enrollment)">
+                            </year-enrollment>
+                            <ellipsis></ellipsis>
+                            <year-enrollment
+                                    :year="lastElementKey(uni.enrollment)" :data="firstElement(uni.enrollment)">
+                            </year-enrollment>
+                        </div>
+                        <div v-else v-for="(enrollment, year) in uni.enrollment">
+                            <year-enrollment :year="year" :data="enrollment"></year-enrollment>
+                        </div>
+                    </td>
+                    <td @click="toggleDetail(name, 'income')">
+                        <div v-if="objectLength(uni.income) > 3">
+                            <year-simple-income
+                                    :year="firstElementKey(uni.income)" :data="firstElement(uni.income)">
+                            </year-simple-income>
+                            ...
+                            <year-simple-income
+                                    :year="lastElementKey(uni.income)" :data="firstElement(uni.income)">
+                            </year-simple-income>
+                        </div>
+                        <div v-else v-for="(income, year) in uni.income">
+                            <year-simple-income :year="year" :data="income"></year-simple-income>
+                        </div>
+                    </td>
+                    <td @click="toggleDetail(name, 'completion')">
+                        <div v-if="objectLength(uni.completion) > 3">
+                            <year-simple-completion
+                                    :year="firstElementKey(uni.completion)" :data="firstElement(uni.completion)">
+                            </year-simple-completion>
+                            ...
+                            <year-simple-completion
+                                    :year="lastElementKey(uni.completion)" :data="firstElement(uni.completion)">
+                            </year-simple-completion>
+                        </div>
+                        <div v-else v-for="(completion, year) in uni.completion">
+                            <year-simple-completion :year="year" :data="completion"></year-simple-completion>
+                        </div>
+                    </td>
+                </tr>
+                <!-- rank row -->
+                <tr v-show="Object.keys(uni.rank).length > 0 && displayStatus[name]['rank']">
+                    <td colspan="5" class="detail-cell">
+                        <table class="detail-table table-borderless">
+                            <tr>
+                                <th>RANKS</th>
+                                <td>Quality of Education</td>
+                                <td>Alumni Employment</td>
+                                <td>Quality of Faculty</td>
+                                <td>Publication</td>
+                                <td>Influence</td>
+                                <td>Citations</td>
+                                <td>Broad Impact</td>
+                                <td>Patent</td>
+                                <td>Score</td>
+                            </tr>
+                            <tr v-for="(data, year) in uni.rank">
+                                <td><span class="year">[[ year ]]</span></td>
+                                <td>[[ data.quality_of_education ]]</td>
+                                <td>[[ data.alumni_employment ]]</td>
+                                <td>[[ data.quality_of_faculty ]]</td>
+                                <td>[[ data.publications ]]</td>
+                                <td>[[ data.influence ]]</td>
+                                <td>[[ data.citations ]]</td>
+                                <td>[[ data.broad_impact ]]</td>
+                                <td>[[ data.patents ]]</td>
+                                <td>[[ data.score ]]</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- income row -->
+                <tr v-show="Object.keys(uni.income).length > 0 && displayStatus[name]['income']">
+                    <td colspan="5" class="detail-cell">
+                        <table class="detail-table table-borderless">
+                            <tr>
+                                <th>INCOMES</th>
+                                <td>Australian Competitive Grants</td>
+                                <td>Other Public Sector Research Funding</td>
+                                <td>Industry and Other Funding for Research</td>
+                                <td>Cooperative Research Center Funding</td>
+                            </tr>
+                            <tr v-for="(data, year) in uni.income">
+                                <td><span class="year">[[ year ]]</span></td>
+                                <td>[[ data.australian_competitive_grants['Sub Total'] ]]</td>
+                                <td>[[ data.other_public_sector_research_funding['Sub Total.1'] ]]</td>
+                                <td>[[ data.industry_and_other_funding['Sub Total.2'] ]]</td>
+                                <td>[[ data.cooperative_research_center_funding['Sub Total.3'] ]]</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <!-- completion row -->
+                <tr class="table-secondary" v-show="displayStatus[name]['completion']">
+                    <td colspan="5" class="detail-cell">
+                        [[ name ]] completion
+                    </td>
+                </tr>
+            </template>
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+        Array.prototype.first = function () {
+            return this[0];
+        };
+        Array.prototype.last = function () {
+            return this[this.length - 1];
+        };
+
+        Vue.component('ellipsis', {
+            template: '<div style="width: 100%; text-align: center">...</div>'
+        });
+
+        Vue.component('year-rank', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> ' +
+            '[[ data["national_rank"] ]]([[ data["world_rank"] ]])</div>'
+        });
+
+        Vue.component('year-enrollment', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> ' +
+            '[[ data["offers"] ]] / [[ data["applications"] ]]' +
+            ' ([[ Math.round(data["offer_rates"] * 100) ]]%)</div>'
+        });
+
+        Vue.component('year-simple-income', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: '<div class="data-block"><span class="year">[[ year ]]</span> [[ data["grand_total"] ]] </div>'
+        });
+
+        Vue.component('year-simple-completion', {
+            props: ['year', 'data'],
+            delimiters: ['[[', ']]'],
+            template: `<div class="data-block"><span class="year">[[ year ]]</span>
+<template v-if='data["grand_total_non_indigenous_and_indigenous_unweighted"] != "np"'>
+<span class="unweighted" title="unweighted">UW</span>[[ data["grand_total_non_indigenous_and_indigenous_unweighted"] ]]
+</template>
+<span class="weighted" title="weighted">W</span>[[ data["grand_total_non_indigenous_and_indigenous_weighted"] ]]</div>`
+        });
+
+        const app = new Vue({
+            el: '#app',
+            data: {
+                results: [],
+                displayed: [],
+                displayStatus: {}
+            },
+            delimiters: ['[[', ']]'],
+            mounted: function () {
+                let that = this;
+                axios.get("/mashup")
+                    .then(function (response) {
+                        that.results = response.data.result;
+                        that.displayed = _.clone(that.results);
+                        let keys = Object.keys(that.results);
+                        for (var key of keys) {
+                            that.displayStatus[key] = {
+                                'rank': false, 'enrollment': false, 'income': false, 'completion': false
+                            }
+                        }
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+            },
+            methods: {
+                firstElementKey: function (obj) {
+                    return Object.keys(obj).first();
+                },
+                firstElement: function (obj) {
+                    return obj[Object.keys(obj).first()];
+                },
+                lastElementKey: function (obj) {
+                    return Object.keys(obj).last();
+                },
+                lastElement: function (obj) {
+                    return obj[Object.keys(obj).last()];
+                },
+                objectLength: function (obj) {
+                    return Object.keys(obj).length;
+                },
+                toggleDetail: function (university, row) {
+                    let newStatus = _.clone(this.displayStatus);
+                    if (row !== 'all') {
+                        newStatus[university][row] = !newStatus[university][row];
+                    }
+                    else {
+                        if (Object.values(newStatus[university]).includes(false)) {
+                            newStatus[university] = {
+                                'rank': true, 'enrollment': true, 'income': true, 'completion': true
+                            };
+                        }
+                        else {
+                            newStatus[university] = {
+                                'rank': false, 'enrollment': false, 'income': false, 'completion': false
+                            };
+                        }
+                    }
+                    this.displayStatus = newStatus;
+                }
+            }
+        });
+    </script>
+{% endblock %}

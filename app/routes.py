@@ -9,18 +9,18 @@ import json
 
 
 @app.route('/', methods=['GET'])
-def index():
-    return redirect(url_for('raw_data'))
+def overall():
+    return render_template('overall.html', style={'overall': 'active', 'raw': '', 'analysis': ''}, width=12)
 
 
 @app.route('/raw', methods=['GET'])
 def raw_data():
-    return render_template('raw.html', style={'raw': 'active', 'analysis': ''})
+    return render_template('raw.html', style={'overall': '','raw': 'active', 'analysis': ''})
 
 
 @app.route('/analysis', methods=['GET'])
 def analysis():
-    return render_template('analysis.html', style={'raw': '', 'analysis': 'active'})
+    return render_template('analysis.html', style={'overall': '','raw': '', 'analysis': 'active'})
 
 
 @app.route('/uni_lists', methods=['POST'])
@@ -257,7 +257,7 @@ def income():
     return jsonify(result=results)
 
 
-@app.route('/mashup')
+@app.route('/mashup', methods=['GET'])
 def mashup():
     final = {}
     delete_fields = ['uni_id', 'year', 'create_date', '_sa_instance_state']

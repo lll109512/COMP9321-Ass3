@@ -481,7 +481,7 @@
                         <select-operator v-model="completionUnweightedOp"></select-operator>
                     </div>
                     <div class="col-4">
-                        <label>Grand Total (uw)</label>
+                        <label>Grand Total (UW)</label>
                         <input-field v-model="completionUnweighted"></input-field>
                     </div>
                     <div class="col-2">
@@ -489,7 +489,7 @@
                         <select-operator v-model="completionWeightedOp"></select-operator>
                     </div>
                     <div class="col-4">
-                        <label>Grand Total (w)</label>
+                        <label>Grand Total (W)</label>
                         <input-field v-model="completionWeighted"></input-field>
                     </div>
                 </div>
@@ -515,7 +515,7 @@
                     <th rowspan="2">Total (UW)</th>
                     <th colspan="2">Research Masters</th>
                     <th colspan="2">Research Doctorate</th>
-                    <th rowspan="2">Total (W)</th>
+                    <th rowspan="2">Total (UW)</th>
                 </tr>
                 <tr>
                     <th>HC</th>
@@ -668,7 +668,7 @@
                         parameters.push('year=' + this.rankYear);
                         if (this.rankYearOp !== '') parameters.push('yearOp=' + this.rankYearOp);
                     }
-                    if (this.rankOrderBy !== '') {
+                    if (this.rankOrderBy !== '' && this.rankOrderBy !== undefined) {
                         parameters.push('order=' + this.rankOrderBy);
                         if (this.rankOrder === 'desc') {
                             parameters.push('desc=1');
@@ -696,7 +696,7 @@
                         parameters.push('offerRate=' + this.enrollRate);
                         if (this.enrollRateOp !== '') parameters.push('offerRateOp=' + this.enrollRateOp);
                     }
-                    if (this.enrollOrderBy !== '') {
+                    if (this.enrollOrderBy !== '' && this.enrollOrderBy !== undefined) {
                         parameters.push('order=' + this.enrollOrderBy);
                         if (this.enrollOrder === 'asc') {
                             parameters.push('desc=');
@@ -731,6 +731,12 @@
                     if (this.incomeTotal !== '') {
                         parameters.push('total=' + this.incomeTotal);
                         if (this.incomeTotalOp !== '') parameters.push('totalOp=' + this.incomeTotalOp);
+                    }
+                    if (this.incomeOrderBy !== '' && this.incomeOrderBy !== undefined) {
+                        parameters.push('order=' + this.incomeOrderBy);
+                        if (this.incomeOrder === 'asc') {
+                            parameters.push('desc=');
+                        }
                     }
                     let that = this;
                     this.query('/income?' + parameters.join('&'), this, function () {

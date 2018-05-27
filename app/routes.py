@@ -10,7 +10,7 @@ import json
 
 @app.route('/', methods=['GET'])
 def overall():
-    return render_template('overall.html', style={'overall': 'active', 'raw': '', 'analysis': ''})
+    return render_template('overall.html', style={'overall': 'active', 'raw': '', 'analysis': ''}, width=12)
 
 
 @app.route('/raw', methods=['GET'])

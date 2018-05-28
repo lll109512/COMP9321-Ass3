@@ -92,7 +92,7 @@ def enrollments_analysis():
     return jsonify(result=data), 200
 
 
-@app.route('/university', methods=['GET'])
+@app.route('/universities/list', methods=['GET'])
 def university():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -107,7 +107,7 @@ def university():
     return jsonify(result=results)
 
 
-@app.route('/rank', methods=['GET'])
+@app.route('/universities/ranks', methods=['GET'])
 def rank():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -139,7 +139,7 @@ def rank():
     return jsonify(result=results)
 
 
-@app.route('/enrollment', methods=['GET'])
+@app.route('/universities/enrollments', methods=['GET'])
 def enrollment():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -171,7 +171,7 @@ def enrollment():
     return jsonify(result=results)
 
 
-@app.route('/completion', methods=['GET'])
+@app.route('/universities/completions', methods=['GET'])
 def completions():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -201,7 +201,7 @@ def completions():
     return jsonify(result=results)
 
 
-@app.route('/income', methods=['GET'])
+@app.route('/universities/incomes', methods=['GET'])
 def income():
     parser = reqparse.RequestParser()
     parser.add_argument('uni', '')
@@ -257,7 +257,7 @@ def income():
     return jsonify(result=results)
 
 
-@app.route('/mashup', methods=['GET'])
+@app.route('/universities/mashup', methods=['GET'])
 def mashup():
     final = {}
     delete_fields = ['uni_id', 'year', 'create_date', '_sa_instance_state']

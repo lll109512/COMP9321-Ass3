@@ -646,7 +646,7 @@
                 },
                 queryUniversity: function () {
                     this.status = 'Query has been send.';
-                    this.query('/university?uni=' + this.uniName, this);
+                    this.query('/universities/list?uni=' + this.uniName, this);
                 },
                 queryRank: function () {
                     this.status = 'Query has been send.';
@@ -674,7 +674,7 @@
                             parameters.push('desc=1');
                         }
                     }
-                    this.query('/rank?' + parameters.join('&'), this);
+                    this.query('/universities/ranks?' + parameters.join('&'), this);
                 },
                 queryEnrollment: function () {
                     this.status = 'Query has been send.';
@@ -702,7 +702,7 @@
                             parameters.push('desc=');
                         }
                     }
-                    this.query('/enrollment?' + parameters.join('&'), this);
+                    this.query('/universities/enrollments?' + parameters.join('&'), this);
                 },
                 queryIncome: function () {
                     this.status = 'Query has been send.';
@@ -739,7 +739,7 @@
                         }
                     }
                     let that = this;
-                    this.query('/income?' + parameters.join('&'), this, function () {
+                    this.query('/universities/incomes?' + parameters.join('&'), this, function () {
                         that.incomeDetailDisplay = Array(that.results.length).fill(false);
                     });
                 },
@@ -759,7 +759,7 @@
                         parameters.push('totalWeighted=' + this.completionWeighted);
                         if (this.completionWeightedOp !== '') parameters.push('totalWeightedOp=' + this.completionWeightedOp);
                     }
-                    this.query('/completion?' + parameters.join('&'), this);
+                    this.query('/universities/completions?' + parameters.join('&'), this);
                 },
                 query: function (queryUrl, handle, additional = false) {
                     console.log(queryUrl);

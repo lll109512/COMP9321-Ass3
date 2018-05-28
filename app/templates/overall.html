@@ -38,10 +38,33 @@
             transform: rotate(-90deg);
         }
     </style>
+    <script src="https://unpkg.com/vue-select@latest"></script>
 {% endblock %}
 
 {% block content %}
     <div id="app">
+        <div>
+            Displayed Universities:
+            <span class="btn btn-primary" style="margin: 0 10px 5px"
+                  v-show="filterUniversityList.length > 0" v-for="university in filterUniversityList">
+                [[ university ]]
+                <button type="button" class="close" @click="removeUniversity(university)" style="margin-left: 4px;">
+                    <span>&times;</span>
+                </button>
+            </span>
+            <span class="btn btn-success" style="margin: 0 10px 5px"
+                  v-show="filterUniversityList.length == 0">ALL</span>
+        </div>
+        <div class="form-group mt-2">
+            <div class="input-group">
+                <button @click="addUniversity" class="btn btn-primary">Add</button>
+                <v-select class="form-control"
+                          :options="Object.keys(results)" v-model="selectedUniversity"></v-select>
+                <input type="text" class="form-control" v-model="filterYear" placeholder="Year">
+                <button @click="applyFilter" class="btn btn-primary">Apply Filter</button>
+            </div>
+        </div>
+
         <table class="table table-sm">
             <thead>
             <tr>
@@ -178,15 +201,63 @@
                         <table class="detail-table table-borderless">
                             <tr>
                                 <th>COMPLETION</th>
-                                <td><ni></ni>-<rm></rm>-<hc></hc></td>
-                                <td><ni></ni>-<rm></rm>-<lc></lc></td>
-                                <td><ni></ni>-<rd></rd>-<hc></hc></td>
-                                <td><ni></ni>-<rd></rd>-<lc></lc></td>
+                                <td>
+                                    <ni></ni>
+                                    -
+                                    <rm></rm>
+                                    -
+                                    <hc></hc>
+                                </td>
+                                <td>
+                                    <ni></ni>
+                                    -
+                                    <rm></rm>
+                                    -
+                                    <lc></lc>
+                                </td>
+                                <td>
+                                    <ni></ni>
+                                    -
+                                    <rd></rd>
+                                    -
+                                    <hc></hc>
+                                </td>
+                                <td>
+                                    <ni></ni>
+                                    -
+                                    <rd></rd>
+                                    -
+                                    <lc></lc>
+                                </td>
                                 <td>NI Total</td>
-                                <td><IG></IG>-<rm></rm>-<hc></hc></td>
-                                <td><IG></IG>-<rm></rm>-<lc></lc></td>
-                                <td><IG></IG>-<rd></rd>-<hc></hc></td>
-                                <td><IG></IG>-<rd></rd>-<lc></lc></td>
+                                <td>
+                                    <IG></IG>
+                                    -
+                                    <rm></rm>
+                                    -
+                                    <hc></hc>
+                                </td>
+                                <td>
+                                    <IG></IG>
+                                    -
+                                    <rm></rm>
+                                    -
+                                    <lc></lc>
+                                </td>
+                                <td>
+                                    <IG></IG>
+                                    -
+                                    <rd></rd>
+                                    -
+                                    <hc></hc>
+                                </td>
+                                <td>
+                                    <IG></IG>
+                                    -
+                                    <rd></rd>
+                                    -
+                                    <lc></lc>
+                                </td>
                                 <td>IG Total</td>
                             </tr>
                             <tr v-for="(data, year) in uni.completion">
@@ -223,6 +294,8 @@
         Array.prototype.last = function () {
             return this[this.length - 1];
         };
+
+        Vue.component("v-select", VueSelect.VueSelect);
 
         Vue.component('ni', {
             template: '<span title="Non-Indigenous">NI</span>'
@@ -287,13 +360,16 @@
             el: '#app',
             data: {
                 results: [],
+                selectedUniversity: '',
+                filterUniversityList: [],
+                filterYear: '',
                 displayed: [],
                 displayStatus: {}
             },
             delimiters: ['[[', ']]'],
             mounted: function () {
                 let that = this;
-                axios.get("/mashup")
+                axios.get("/universities/mashup")
                     .then(function (response) {
                         that.results = response.data.result;
                         that.displayed = _.clone(that.results);
@@ -342,6 +418,43 @@
                         }
                     }
                     this.displayStatus = newStatus;
+                },
+                addUniversity: function () {
+                    if (!this.filterUniversityList.includes(this.selectedUniversity)) {
+                        this.filterUniversityList.push(this.selectedUniversity);
+                    }
+                },
+                removeUniversity: function (university) {
+                    let index = this.filterUniversityList.indexOf(university);
+                    if (index > -1) {
+                        this.filterUniversityList.splice(index, 1);
+                    }
+                },
+                applyFilter: function () {
+                    this.displayed = {};
+                    if (this.filterUniversityList.length > 0) {
+                        for (let displayUniversity of this.filterUniversityList) {
+                            this.displayed[displayUniversity] = _.clone(this.results[displayUniversity]);
+                        }
+                    }
+                    else {
+                        this.displayed = _.clone(this.results);
+                    }
+                    if (this.filterYear !== '') {
+                        for (let displayUniversity of Object.keys(this.displayed)) {
+                            let row = this.displayed[displayUniversity];
+                            for (let field of Object.keys(row)) {
+                                row[field] = this.getYearData(row[field], this.filterYear)
+                            }
+                        }
+                    }
+                },
+                getYearData: function (field, year) {
+                    let newFiled = {};
+                    if (Object.keys(field).indexOf(year.toString()) > -1) {
+                        newFiled[year] = field[year];
+                    }
+                    return newFiled;
                 }
             }
         });
